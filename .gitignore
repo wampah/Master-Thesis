@@ -398,4 +398,7 @@ FodyWeavers.xsd
 *.sln.iml
 
 # venv
-mthesis/
+mthesis_env/
+
+#egg
+*.egg-info
