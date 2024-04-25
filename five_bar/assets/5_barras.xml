@@ -45,7 +45,7 @@
 		<framelinvel objtype="body" objname="end_effector"/>
 	</sensor>
     <actuator>
-        <motor joint="joint1" />
-        <motor joint="joint2" />
+        <motor joint="joint1" ctrllimited="true"  ctrlrange="-1.0 1.0"/>
+        <motor joint="joint2" ctrllimited="true"  ctrlrange="-1.0 1.0"/>
     </actuator>
 </mujoco>

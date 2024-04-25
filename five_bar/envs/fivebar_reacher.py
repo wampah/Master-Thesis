@@ -48,6 +48,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             dict(rwd_distance=rwd_distance,rwd_control=rwd_control),
             )
     def reset_model(self):
+        self.set_state(self.init_qpos,self.init_qvel)
         return self._get_obs()
     def _get_obs(self):
       theta=[self.data.qpos[0],self.data.qpos[2]]
