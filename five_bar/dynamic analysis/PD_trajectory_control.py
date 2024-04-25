@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import interp1d
 
-df = pd.read_csv('datos.csv', delimiter=";",header=None, names=['time', 'q1', 'q2', 'dq1', 'dq2'])
+df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'trajectory_data.csv'), delimiter=";",header=None, names=['time', 'q1', 'q2', 'dq1', 'dq2'])
 
 interp_q1 = interp1d(df['time'], df['q1'], kind='linear', fill_value='extrapolate')
 interp_q2 = interp1d(df['time'], df['q2'], kind='linear', fill_value='extrapolate')
@@ -17,8 +17,7 @@ interp_dq2 = interp1d(df['time'], df['dq2'], kind='linear', fill_value='extrapol
 
 q1_0=df.q1[0]
 q2_0=df.q2[0]
-
-xml_path = '5_barras.xml' #xml file (assumes this is in the same folder as this file)
+xml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_barras.xml") #xml file (assumes this is in the same folder as this file)
 simend = 4 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
@@ -64,11 +63,11 @@ def controller(model, data):
     
     
     if(data.time<2):
-        data.ctrl[0] = -100*(q1-(q1_0-np.deg2rad(135)))-5*dq1
-        data.ctrl[1] = -100*(q2-(q2_0+np.deg2rad(135)))-5*dq2
+        data.ctrl[0] = -100*(q1-(q1_0-np.deg2rad(0)))-5*dq1
+        data.ctrl[1] = -100*(q2-(q2_0+np.deg2rad(180)))-5*dq2
     else:
-        data.ctrl[0] = -100*(q1-(interp_q1(data.time-2)-np.deg2rad(135)))-10*(dq1-interp_dq1(data.time-2))
-        data.ctrl[1] = -100*(q2-(interp_q2(data.time-2)+np.deg2rad(135)))-10*(dq2-interp_dq2(data.time-2))
+        data.ctrl[0] = -100*(q1-(interp_q1(data.time-2)-np.deg2rad(0)))-10*(dq1-interp_dq1(data.time-2))
+        data.ctrl[1] = -100*(q2-(interp_q2(data.time-2)+np.deg2rad(180)))-10*(dq2-interp_dq2(data.time-2))
         
 
 
@@ -143,16 +142,15 @@ def scroll(window, xoffset, yoffset):
     mj.mjv_moveCamera(model, action, 0.0, -0.05 *
                       yoffset, scene, cam)
 
-#get the full path
-dirname = os.path.dirname(__file__)
-abspath = os.path.join(dirname + "/" + xml_path)
-xml_path = abspath
 
 # MuJoCo data structures
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)                # MuJoCo data
 cam = mj.MjvCamera()                        # Abstract camera
 opt = mj.MjvOption()                        # visualization options
+
+print([model.geom(i).name for i in range(model.ngeom)])
+print(data.qpos)
 
 # Init GLFW, create window, make OpenGL context current, request v-sync
 glfw.init()
@@ -254,8 +252,8 @@ time_obj=np.linspace(2,4,20)
 # Plotting positions
 axis[0].plot(times, pxs,'r-', label='q1')
 axis[0].plot(times, pys, 'b-',label='q2')
-axis[0].plot(time_obj, interp_q1(time_obj-2)-np.deg2rad(135),'r*', label='q1_obj')
-axis[0].plot(time_obj, interp_q2(time_obj-2)+np.deg2rad(135),'b*', label='q1_obj')
+axis[0].plot(time_obj, interp_q1(time_obj-2)-np.deg2rad(0),'r*', label='q1_obj')
+axis[0].plot(time_obj, interp_q2(time_obj-2)+np.deg2rad(180),'b*', label='q1_obj')
 axis[0].set_title('Positions')
 axis[0].set_xlabel('Time')
 axis[0].set_ylabel('Position')
