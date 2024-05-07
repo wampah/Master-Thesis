@@ -1,3 +1,5 @@
 from gymnasium.envs.registration import register
 register(id='five_bar-v0',
-         entry_point='five_bar.envs.fivebar_reacher:FiveBar_Reacher',)
+         entry_point='five_bar.envs.fivebar_reacher:FiveBar_Reacher',
+         max_episode_steps=50,
+        reward_threshold=-25,)

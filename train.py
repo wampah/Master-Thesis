@@ -1,15 +1,15 @@
 import gymnasium as gym
-
+import five_bar
 from stable_baselines3 import DDPG
 
-env = gym.make("Reacher-v4", render_mode="rgb_array")
+env = gym.make("five_bar-v0", render_mode="rgb_array")
 
-# model = DDPG("MlpPolicy", env, verbose=1)
-# model.learn(total_timesteps=100_000)
+model = DDPG("MlpPolicy", env, verbose=1)
+model.learn(total_timesteps=500_000)
 
-# model.save("DDPG_reacher")
-# # del model
-model = DDPG.load("DDPG_reacher", env=env)
+model.save("DDPG_5bar")
+del model
+model = DDPG.load("DDPG_5bar", env=env)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
