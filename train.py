@@ -2,13 +2,14 @@ import gymnasium as gym
 import five_bar
 from stable_baselines3 import DDPG
 
-env = gym.make("five_bar-v0", render_mode="rgb_array")
+env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
 
-model = DDPG("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=500_000)
 
-model.save("DDPG_5bar")
-del model
+# model = DDPG("MlpPolicy", env, verbose=1)
+# model.learn(total_timesteps=500_000)
+
+# model.save("DDPG_5bar")
+# del model
 model = DDPG.load("DDPG_5bar", env=env)
 
 vec_env = model.get_env()

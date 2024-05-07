@@ -3,7 +3,10 @@ import os
 from gymnasium import utils, error, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 
-DEFAULT_CAMERA_CONFIG = {"trackbodyid": 0}
+DEFAULT_CAMERA_CONFIG = {
+    "distance": 1.5,
+    "trackbodyid": 0
+    }
 
 class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
     metadata = {
@@ -52,6 +55,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             self.np_random.uniform(low=-0.1, high=0.1, size=self.model.nq)
             + self.init_qpos
         )
+        qvel=0
         while True:
             self.goal = self.np_random.uniform(low=-1, high=1, size=2)
             if np.linalg.norm(self.goal) < 0.5:
