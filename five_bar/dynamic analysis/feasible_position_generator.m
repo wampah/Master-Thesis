@@ -58,29 +58,73 @@ L_d2_val=0.4;
 % Sustituye parámetros
 PHI=subs(PHI,[O_1x O_2x O_1y O_2y L_p1 L_p2 L_d1 L_d2],[O_1x_val O_2x_val O_1y_val O_2y_val L_p1_val L_p2_val L_d1_val L_d2_val]);
 
+PHI_q=[diff(PHI,q(1)) diff(PHI,q(2)) diff(PHI,q(3)) ...
+    diff(PHI,q(4)) diff(PHI,q(5)) diff(PHI,q(6)) ...
+    diff(PHI,q(7)) diff(PHI,q(8)) diff(PHI,q(9)) ...
+    diff(PHI,q(10)) diff(PHI,q(11)) diff(PHI,q(12))];
+
 PHI_fun=matlabFunction(PHI,"Vars",[q;val_phi_p1;val_phi_p2]);
-options = optimoptions('fsolve');
 
-sols=[];
-for i = 1:10
-    PHI_fun_subs=@(q) PHI_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),rand()*pi,-rand()*pi);
-    sol=fsolve(PHI_fun_subs,q_0,options);
-    sols=[sols sol];
+PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_phi_p1;val_phi_p2]);
+
+%%
+tol=1e-6;
+max_iters=1000;
+
+t=linspace(0,2,1e6);
+
+
+qs=[];
+
+for i=t
+
+    q_0=[-0.14571;0.07071;deg2rad(135);...
+    -0.10821;0.30962;deg2rad(57.24);...
+    0.10821;0.30962;deg2rad(-57.24);...
+    0.14571;0.07071;deg2rad(-135)];
+
+    j=1;
+    q_ant=q_0;
+    theta1=rand()*pi;
+    theta2=-rand()*pi;
+
+    PHI_fun_subs=@(q) PHI_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),theta1,theta2);
+    PHI_q_fun_subs=@(q) PHI_q_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),theta1,theta2);
+
+    while true
+        
+
+        phi_val=PHI_fun_subs(q_0);
+        phi_q_val=PHI_q_fun_subs(q_0);
+
+        q_1=q_0-phi_q_val\phi_val;
+
+        if (j>max_iters)
+            disp("Exceed iters")
+            break
+        end
+        if (max(abs(phi_val))<=tol)
+            qs=[qs q_0];
+            disp("Found solution")
+            break
+        end
+
+        q_0=q_1;
+        j=j+1;
+    end
 end
-
-
-
 
 %%
 close all
 fig=figure(1);
-axis([-0.6 0.6 -0.6 0.6])
+axis([-0.8 0.8 -0.8 0.8])
 axis(gca,'equal')
+
 eslab1=viscircles([O_1x_val O_1y_val],L_p1_val,'LineStyle','--');
 eslab2=viscircles([O_2x_val O_2y_val],L_p2_val,'LineStyle','--');
 mecha=line(0,0);
-for i=1:length(sols)
-    q_act=sols(:,i);
+for i=1:length(qs)
+    q_act=qs(:,i);
     delete(mecha);
     pts=[[q_act(1);q_act(2)]+rotmat(q_act(3))*[-L_p1_val/2;0] ...
         [q_act(1);q_act(2)]+rotmat(q_act(3))*[L_p1_val/2;0] ...
@@ -90,6 +134,6 @@ for i=1:length(sols)
     
     mecha=line(pts(1,:),pts(2,:));
     
-    pause(0.001);
+    pause(0.1);
     
 end
