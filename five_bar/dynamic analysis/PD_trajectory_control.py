@@ -63,11 +63,11 @@ def controller(model, data):
     
     
     if(data.time<2):
-        data.ctrl[0] = -100*(q1-(q1_0-np.deg2rad(0)))-5*dq1
-        data.ctrl[1] = -100*(q2-(q2_0+np.deg2rad(180)))-5*dq2
+        data.ctrl[0] = -100*(q1-(q1_0))-5*dq1
+        data.ctrl[1] = -100*(q2-(q2_0))-5*dq2
     else:
-        data.ctrl[0] = -100*(q1-(interp_q1(data.time-2)-np.deg2rad(0)))-10*(dq1-interp_dq1(data.time-2))
-        data.ctrl[1] = -100*(q2-(interp_q2(data.time-2)+np.deg2rad(180)))-10*(dq2-interp_dq2(data.time-2))
+        data.ctrl[0] = -100*(q1-(interp_q1(data.time-2)))-10*(dq1-interp_dq1(data.time-2))
+        data.ctrl[1] = -100*(q2-(interp_q2(data.time-2)))-10*(dq2-interp_dq2(data.time-2))
         
 
 
@@ -204,18 +204,20 @@ while not glfw.window_should_close(window):
 
     while (data.time - time_prev < 1.0/60.0):
         mj.mj_step(model, data)
-        times.append(data.time)
-        pxs.append(data.qpos[0])
-        pys.append(data.qpos[2])
+        if data.time>=2:
+            times.append(data.time-2)
+            pxs.append(data.qpos[0])
+            pys.append(data.qpos[2])
 
-        vxs.append(data.qvel[0])
-        vys.append(data.qvel[2])
+            vxs.append(data.qvel[0])
+            vys.append(data.qvel[2])
 
-        axs.append(data.qacc[0])
-        ays.append(data.qacc[2])
+            axs.append(data.qacc[0])
+            ays.append(data.qacc[2])
+            
+            eff_xs.append(data.sensordata[0])
+            eff_ys.append(data.sensordata[1])
         
-        eff_xs.append(data.sensordata[0])
-        eff_ys.append(data.sensordata[1])
         
 
     if (data.time>=simend):
@@ -247,13 +249,13 @@ glfw.terminate()
 # Creating subplots
 fig, axis = plt.subplots(4, 1, figsize=(8, 12))
 
-time_obj=np.linspace(2,4,20)
+time_obj=np.linspace(0,2,20)
 
 # Plotting positions
 axis[0].plot(times, pxs,'r-', label='q1')
 axis[0].plot(times, pys, 'b-',label='q2')
-axis[0].plot(time_obj, interp_q1(time_obj-2)-np.deg2rad(0),'r*', label='q1_obj')
-axis[0].plot(time_obj, interp_q2(time_obj-2)+np.deg2rad(180),'b*', label='q1_obj')
+axis[0].plot(time_obj, interp_q1(time_obj),'r*', label='q1_obj')
+axis[0].plot(time_obj, interp_q2(time_obj),'b*', label='q1_obj')
 axis[0].set_title('Positions')
 axis[0].set_xlabel('Time')
 axis[0].set_ylabel('Position')
@@ -262,8 +264,8 @@ axis[0].legend()
 # Plotting velocities
 axis[1].plot(times, vxs, 'r-',label='dq1')
 axis[1].plot(times, vys, 'b-',label='dq2')
-axis[1].plot(time_obj, interp_dq1(time_obj-2),'r*', label='dq1_obj')
-axis[1].plot(time_obj, interp_dq2(time_obj-2),'b*', label='dq1_obj')
+axis[1].plot(time_obj, interp_dq1(time_obj),'r*', label='dq1_obj')
+axis[1].plot(time_obj, interp_dq2(time_obj),'b*', label='dq1_obj')
 axis[1].set_title('Velocities')
 axis[1].set_xlabel('Time')
 axis[1].set_ylabel('Velocity')

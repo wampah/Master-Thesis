@@ -71,7 +71,7 @@ PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_phi_p1;val_phi_p2]);
 tol=1e-6;
 max_iters=1000;
 
-t=linspace(0,2,1e6);
+t=linspace(0,2,1e4);
 
 
 qs=[];
@@ -79,8 +79,8 @@ qs=[];
 for i=t
 
     q_0=[-0.14571;0.07071;deg2rad(135);...
-    -0.10821;0.30962;deg2rad(57.24);...
-    0.10821;0.30962;deg2rad(-57.24);...
+    -0.10821;0.30962;deg2rad(57.244623466);...
+    0.10821;0.30962;deg2rad(-57.244623466);...
     0.14571;0.07071;deg2rad(-135)];
 
     j=1;
