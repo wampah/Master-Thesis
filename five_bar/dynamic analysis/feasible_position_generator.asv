@@ -120,9 +120,6 @@ end
 %%
 close all
 fig=figure(1);
-plot(effs(1,:).',effs(2,:).','*')
-%%
-fig=figure(2);
 axis([-0.8 0.8 -0.8 0.8])
 axis(gca,'equal')
 
@@ -144,3 +141,5 @@ for i=1:length(qs)
     
 end
 %%
+fig=figure(2);
+plot(effs(1,:).',effs(2,:).','*')

@@ -1,3 +1,5 @@
+clear all
+close all
 %% Ecuaciones de restricción y actuación
 syms t...
     L_p1 L_p2 L_d1 L_d2 ...
@@ -208,4 +210,4 @@ plot(t,gradient(gradient(qs(12,:),t),t),"--")
 legend({'$\ddot{\phi}_1$', '$\ddot{\phi}_{1 \mathrm{num}}$', '$\ddot{\phi}_4$', '$\ddot{\phi}_{4 \mathrm{num}}$'}, 'Interpreter', 'latex');
 
 data=[t;qs(3,:);qs(12,:);dqs(3,:);dqs(12,:)].';
-
+writematrix(data,"trajectory_data.csv");
