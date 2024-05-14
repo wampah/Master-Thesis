@@ -1,3 +1,5 @@
+clear all
+close all
 %% Ecuaciones de restricción y actuación
 syms t...
     L_p1 L_p2 L_d1 L_d2 ...
@@ -71,7 +73,7 @@ PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_phi_p1;val_phi_p2]);
 tol=1e-6;
 max_iters=100;
 
-t=linspace(0,2,1e5);
+t=linspace(0,2,1e4);
 
 q_0=[-0.14571;0.07071;deg2rad(135);...
     -0.10821;0.30962;deg2rad(57.244623466);...
@@ -79,7 +81,7 @@ q_0=[-0.14571;0.07071;deg2rad(135);...
     0.14571;0.07071;deg2rad(-135)];
 
 qs=[q_0];
-effs=[]
+effs=[[[q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0]]]
 for i=t
 
     
@@ -120,6 +122,12 @@ end
 %%
 close all
 fig=figure(1);
+plot(effs(1,:).',effs(2,:).','*')
+%%
+data=[qs(3,:);qs(12,:);effs(1,:);effs(2,:)].';
+matrixwrite(data,'fea')
+%%
+fig=figure(2);
 axis([-0.8 0.8 -0.8 0.8])
 axis(gca,'equal')
 
@@ -140,6 +148,3 @@ for i=1:length(qs)
     pause(0.1);
     
 end
-%%
-fig=figure(2);
-plot(effs(1,:).',effs(2,:).','*')
