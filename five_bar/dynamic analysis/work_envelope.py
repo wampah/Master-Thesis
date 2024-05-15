@@ -1,16 +1,19 @@
 import pandas as pd
 import os
 import matplotlib.pyplot as plt
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 # Load the CSV into a DataFrame
-df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'feasible_points.csv'), delimiter=",", header=None, names=['q1', 'q2', 'effx', 'effy'])
+df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'feasible_points.parquet'), engine='pyarrow')
+custom_headers = ['q1', 'q2', 'effx', 'effy']
+
+# Rename the columns
+df.columns = custom_headers
 
 # Sort the DataFrame by 'effx'
 df_sorted = df.sort_values('effx')
 
 # Create 1000 bins for 'effx'
-bins = pd.cut(df_sorted['effx'], bins=50)
+bins = pd.cut(df_sorted['effx'], bins=1000)
 
 # Initialize lists to store the results
 min_effx = []
@@ -46,13 +49,9 @@ plt.plot(min_effx_vals,min_effy_vals,"ro")
 plt.plot(max_effx_vals,max_effy_vals,"ro")
 
 
-
-
 eff_vals=df[["effx","effy"]].to_numpy()
+plt.plot(eff_vals[:,0], eff_vals[:,1], '*',markersize=0.5)
 
-hull = ConvexHull(eff_vals)
-plt.plot(eff_vals[:,0], eff_vals[:,1], '*',markersize=1)
-
-for simplex in hull.simplices:
-    plt.plot(eff_vals[simplex, 0], eff_vals[simplex, 1], 'k-')
 plt.show()
+
+
