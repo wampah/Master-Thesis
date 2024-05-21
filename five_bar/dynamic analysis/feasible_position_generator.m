@@ -73,7 +73,7 @@ PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_phi_p1;val_phi_p2]);
 tol=1e-6;
 max_iters=100;
 
-t=linspace(0,2,2e6);
+t=linspace(0,2,1e3);
 
 q_0=[-0.14571;0.07071;deg2rad(135);...
     -0.10821;0.30962;deg2rad(57.244623466);...
@@ -125,8 +125,8 @@ fig=figure(1);
 plot(effs(1,:).',effs(2,:).','*')
 %%
 data=[qs(3,:);qs(12,:);effs(1,:);effs(2,:)].';
-parquetwrite('feasible_points.parquet',array2table(data))
-writematrix(data,'feasible_points.csv')
+%parquetwrite('feasible_points.parquet',array2table(data))
+%writematrix(data,'feasible_points.csv')
 %%
 fig=figure(2);
 axis([-0.8 0.8 -0.8 0.8])

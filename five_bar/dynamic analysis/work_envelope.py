@@ -1,57 +1,74 @@
 import pandas as pd
+import numpy as np
 import os
 import matplotlib.pyplot as plt
+from shapely.geometry import Polygon, Point
 
-# Load the CSV into a DataFrame
+
 df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'feasible_points.parquet'), engine='pyarrow')
-custom_headers = ['q1', 'q2', 'effx', 'effy']
 
-# Rename the columns
+custom_headers = ['q1', 'q2', 'effx', 'effy']
 df.columns = custom_headers
 
-# Sort the DataFrame by 'effx'
-df_sorted = df.sort_values('effx')
+df["theta"]=np.arctan2(df["effy"],df["effx"])
+df["r"]=np.sqrt(df["effy"]**2+df["effx"]**2)
 
-# Create 1000 bins for 'effx'
-bins = pd.cut(df_sorted['effx'], bins=1000)
+df_sorted = df.sort_values('theta')
 
-# Initialize lists to store the results
-min_effx = []
-min_effy = []
-max_effx = []
-max_effy = []
 
-# Group by the bins and find the min and max 'effy' and their associated 'effx'
+bins = pd.cut(df_sorted['theta'], bins=100)
+
+effx_out = []
+effy_out = []
+
+effx_in = []
+effy_in = []
+
 grouped = df_sorted.groupby(bins)
 for _, group in grouped:
     if not group.empty:
-        min_row = group.loc[group['effy'].idxmin()]
-        max_row = group.loc[group['effy'].idxmax()]
-        min_effx.append(min_row['effx'])
-        min_effy.append(min_row['effy'])
-        max_effx.append(max_row['effx'])
-        max_effy.append(max_row['effy'])
+        min_row = group.loc[group['r'].idxmin()]
+        max_row = group.loc[group['r'].idxmax()]
+        effx_in.append(min_row['effx'])
+        effy_in.append(min_row['effy'])
+        effx_out.append(max_row['effx'])
+        effy_out.append(max_row['effy'])
 
-# Create a new DataFrame with the results
-result = pd.DataFrame({
-    'min_effx': min_effx,
-    'min_effy': min_effy,
-    'max_effx': max_effx,
-    'max_effy': max_effy
-})
+fig1,ax1=plt.subplots()
 
-min_effx_vals=result["min_effx"].to_numpy()
-min_effy_vals=result["min_effy"].to_numpy()
-max_effx_vals=result["max_effx"].to_numpy()
-max_effy_vals=result["max_effy"].to_numpy()
-
-plt.plot(min_effx_vals,min_effy_vals,"ro")
-plt.plot(max_effx_vals,max_effy_vals,"ro")
+ax1.plot(effx_out,effy_out,"r*")
+ax1.plot(effx_in,effy_in,"k*")
 
 
 eff_vals=df[["effx","effy"]].to_numpy()
-plt.plot(eff_vals[:,0], eff_vals[:,1], '*',markersize=0.5)
+ax1.plot(eff_vals[:,0], eff_vals[:,1], '*',markersize=0.5)
 
 plt.show()
+def generate_random_points_between_polygons(outer_polygon, inner_polygon, num_points):
+    pointsx = []
+    pointsy = []
+    minx, miny, maxx, maxy = outer_polygon.bounds
+    while len(pointsx) < num_points:
+        random_point = Point(np.random.uniform(minx, maxx), np.random.uniform(miny, maxy))
+        if outer_polygon.contains(random_point) and not inner_polygon.contains(random_point):
+            pointsx.append(random_point.x)
+            pointsy.append(random_point.y)
+    return pointsx,pointsy
 
 
+outer_polygon = Polygon(list(zip(effx_out, effy_out)))
+inner_polygon = Polygon(list(zip(effx_in, effy_in)))
+
+
+random_pointsx,random_pointsy = generate_random_points_between_polygons(outer_polygon, inner_polygon, 1e5)
+
+a=np.asarray([random_pointsx,random_pointsy])
+np.savetxt("foo.csv", a, delimiter=",")
+
+fig2,ax2=plt.subplots()
+
+
+ax2.plot(random_pointsx,random_pointsy,"g*")
+
+
+plt.show()
