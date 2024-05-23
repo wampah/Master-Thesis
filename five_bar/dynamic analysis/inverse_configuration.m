@@ -126,7 +126,7 @@ plot(effs(1,:).',effs(2,:).','*')
 
 %%
 data=[qs(3,:);qs(6,:);qs(9,:);qs(12,:);effs(1,:);effs(2,:)].';
-parquetwrite('initial_pts.parquet',array2table(data))
+%parquetwrite('initial_pts.parquet',array2table(data))
 %%
 fig=figure(2);
 axis([-0.8 0.8 -0.8 0.8])

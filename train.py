@@ -6,15 +6,15 @@ env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
 
 
 model = DDPG("MlpPolicy", env, verbose=1)
-#model.learn(total_timesteps=500_000)
+model.learn(total_timesteps=500_000)
 
-#model.save("DDPG_5ba2")
-#del model
+model.save("DDPG_5ba2")
+del model
 model = DDPG.load("DDPG_5ba2", env=env)
 
 vec_env = model.get_env()
 obs = vec_env.reset()
-for i in range(1000):
+for i in range(10000):
     action, _state = model.predict(obs, deterministic=True)
     obs, reward, done, info = vec_env.step(action)
     vec_env.render("human")
