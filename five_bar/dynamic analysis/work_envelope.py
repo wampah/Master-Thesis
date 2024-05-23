@@ -60,15 +60,15 @@ outer_polygon = Polygon(list(zip(effx_out, effy_out)))
 inner_polygon = Polygon(list(zip(effx_in, effy_in)))
 
 
-random_pointsx,random_pointsy = generate_random_points_between_polygons(outer_polygon, inner_polygon, 1e5)
+random_pointsx,random_pointsy = generate_random_points_between_polygons(outer_polygon, inner_polygon, 1e4)
 
-a=np.asarray([random_pointsx,random_pointsy])
-np.savetxt("foo.csv", a, delimiter=",")
+a=np.vstack((random_pointsx, random_pointsy)).T
+np.savetxt(os.path.join(os.path.dirname(__file__), 'random_pts.csv'), a, delimiter=",")
 
 fig2,ax2=plt.subplots()
 
 
-ax2.plot(random_pointsx,random_pointsy,"g*")
+ax2.plot(random_pointsx,random_pointsy,"g*",markersize=0.5)
 
 
 plt.show()

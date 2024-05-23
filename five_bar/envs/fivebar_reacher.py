@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import os
 from gymnasium import utils, error, spaces
 from gymnasium.envs.mujoco import MujocoEnv
@@ -20,6 +21,11 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
     def __init__(self,**kwargs):
         utils.EzPickle.__init__(self,**kwargs)
         FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_barras.xml")
+        DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dynamic analysis\\initial_pts.parquet")
+        
+        df = pd.read_parquet(DATA_PATH)
+        self.initial_pts=df.to_numpy()
+
         observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(11,), dtype=np.float64)
         frame_skip = 2
         MujocoEnv.__init__(
@@ -51,20 +57,30 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             dict(rwd_distance=rwd_distance,rwd_control=rwd_control),
             )
     def reset_model(self):
-        qpos = (
-            self.np_random.uniform(low=-0.1, high=0.1, size=self.model.nq)
-            + self.init_qpos
-        )
-        qvel=0
-        while True:
-            self.goal = self.np_random.uniform(low=-1, high=1, size=2)
-            if np.linalg.norm(self.goal) < 0.5:
-                break
-        qpos[-2:] = self.goal
-        qvel = self.init_qvel + self.np_random.uniform(
-            low=-0.005, high=0.005, size=self.model.nv
-        )
-        qvel[-2:] = 0
+        
+        random_index1 = np.random.choice(self.initial_pts.shape[0])
+        random_index2 = np.random.choice(self.initial_pts.shape[0])
+
+        random_qpos = self.initial_pts[random_index1, :]
+        
+        q_p1=random_qpos[0]
+        q_d1=random_qpos[1]
+        q_d2=random_qpos[2]
+        q_p2=random_qpos[3]
+        
+        j1=q_p1
+        j2=q_p2
+        j3=q_d1-q_p1
+        j4=q_d2-q_p2
+        
+        random_effs = self.initial_pts[random_index2, :]
+
+        self.goal=np.array([random_effs[4],random_effs[5]])
+        
+        qpos = np.array([j1,j3,j2,j4,self.goal[0],self.goal[1]])
+
+        qvel=np.zeros(self.model.nv)
+
         self.set_state(qpos, qvel)
         return self._get_obs()
     

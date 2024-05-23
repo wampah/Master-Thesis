@@ -217,9 +217,9 @@ while not glfw.window_should_close(window):
             
             eff_xs.append(data.sensordata[0])
             eff_ys.append(data.sensordata[1])
-        
-        
+            
 
+        
     if (data.time>=simend):
         break
 

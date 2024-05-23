@@ -108,7 +108,7 @@ for i=t
         end
         if (max(abs(phi_val))<=tol)
             qs=[qs q_0];
-            effs=[effs [q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0]];
+            effs=[effs [[q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0]]];
             disp("Found solution")
             break
         end

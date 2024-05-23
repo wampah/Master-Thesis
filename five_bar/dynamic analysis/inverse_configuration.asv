@@ -1,5 +1,8 @@
 clear all
 close all
+
+%%
+feasible_pts=readmatrix("random_pts.csv");
 %% Ecuaciones de restricción y actuación
 syms t...
     L_p1 L_p2 L_d1 L_d2 ...
@@ -9,7 +12,7 @@ syms t...
     x_p2 y_p2 ...
     x_d1 y_d1...
     x_d2 y_d2...
-    val_phi_p1 val_phi_p2
+    val_effx val_effy
 
 %Función Auxiliar para caluclar la matriz de rotación
 rotmat=@(phi) [cos(phi) -sin(phi);sin(phi) cos(phi)];
@@ -42,7 +45,7 @@ eq4=[x_d2;y_d2]+rotmat(phi_d2)*[L_d2/2;0]==[x_p2;y_p2]+rotmat(phi_p2)*[-L_p2/2;0
 % Eslabón proximal 2 - Tierra
 eq5=[x_p2;y_p2]+rotmat(phi_p2)*[L_p2/2;0]==[O_2x;O_2y];
 
-eq6=[phi_p1;phi_p2]==[val_phi_p1;val_phi_p2];
+eq6=[val_effx;val_effy]==[x_d1;y_d1]+rotmat(phi_d1)*[L_d1/2;0];
 
 PHI=[rhs(eq1)-lhs(eq1);rhs(eq2)-lhs(eq2);rhs(eq3)-lhs(eq3);rhs(eq4)-lhs(eq4);rhs(eq5)-lhs(eq5);rhs(eq6)-lhs(eq6)];
 
@@ -65,9 +68,9 @@ PHI_q=[diff(PHI,q(1)) diff(PHI,q(2)) diff(PHI,q(3)) ...
     diff(PHI,q(7)) diff(PHI,q(8)) diff(PHI,q(9)) ...
     diff(PHI,q(10)) diff(PHI,q(11)) diff(PHI,q(12))];
 
-PHI_fun=matlabFunction(PHI,"Vars",[q;val_phi_p1;val_phi_p2]);
+PHI_fun=matlabFunction(PHI,"Vars",[q;val_effx;val_effy]);
 
-PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_phi_p1;val_phi_p2]);
+PHI_q_fun=matlabFunction(PHI_q,"Vars",[q;val_effx;val_effy]);
 
 %%
 tol=1e-6;
@@ -81,18 +84,14 @@ q_0=[-0.14571;0.07071;deg2rad(135);...
     0.14571;0.07071;deg2rad(-135)];
 
 qs=[q_0];
-effs=[[[q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0]]];
-for i=t
-
-    
-
+for i=1:size(feasible_pts,1)
     j=1;
     q_ant=qs(:,end);
-    theta1=rand()*pi;
-    theta2=-rand()*pi;
+    effx=feasible_pts(i,1);
+    effy=feasible_pts(i,2);
 
-    PHI_fun_subs=@(q) PHI_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),theta1,theta2);
-    PHI_q_fun_subs=@(q) PHI_q_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),theta1,theta2);
+    PHI_fun_subs=@(q) PHI_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),effx,effy);
+    PHI_q_fun_subs=@(q) PHI_q_fun(q(1),q(2),q(3),q(4),q(5),q(6),q(7),q(8),q(9),q(10),q(11),q(12),effx,effy);
 
     while true
         
@@ -108,7 +107,6 @@ for i=t
         end
         if (max(abs(phi_val))<=tol)
             qs=[qs q_0];
-            effs=[effs [q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0]];
             disp("Found solution")
             break
         end
@@ -119,10 +117,7 @@ for i=t
 
 end
 
-%%
-close all
-fig=figure(1);
-plot(effs(1,:).',effs(2,:).','*')
+
 %%
 data=[qs(3,:);qs(12,:);effs(1,:);effs(2,:)].';
 %parquetwrite('feasible_points.parquet',array2table(data))
