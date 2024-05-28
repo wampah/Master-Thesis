@@ -192,9 +192,6 @@ hold on
 plot(t,qs(3,:))
 plot(t,qs(12,:))
 legend(["$\phi_1$","$\phi_4$"],'Interpreter', 'latex')
-xlabel('Tiempo (s)')
-ylabel("Posición Angular (rad)")
-title("Posición")
 subplot(3,1,2)
 hold on
 plot(t,dqs(3,:))
@@ -202,9 +199,6 @@ plot(t,gradient(qs(3,:),t),"--")
 plot(t,dqs(12,:))
 plot(t,gradient(qs(12,:),t),"--")
 legend({'$\dot{\phi}_1$', '$\dot{\phi}_{1 \mathrm{num}}$', '$\dot{\phi}_4$', '$\dot{\phi}_{4 \mathrm{num}}$'}, 'Interpreter', 'latex');
-xlabel('Tiempo (s)')
-ylabel("Velocidad Angular (rad/s)")
-title("Velocidad")
 subplot(3,1,3)
 hold on
 plot(t,ddqs(3,:))
@@ -212,11 +206,6 @@ plot(t,gradient(gradient(qs(3,:),t),t),"--")
 plot(t,ddqs(12,:))
 plot(t,gradient(gradient(qs(12,:),t),t),"--")
 legend({'$\ddot{\phi}_1$', '$\ddot{\phi}_{1 \mathrm{num}}$', '$\ddot{\phi}_4$', '$\ddot{\phi}_{4 \mathrm{num}}$'}, 'Interpreter', 'latex');
-xlabel('Tiempo (s)')
-ylabel("Aceleracón Angular (rad/s^2)")
-title("Aceleración")
-data=[t;qs(3,:);qs(12,:);dqs(3,:);dqs(12,:)].';
 
-sgtitle("Cinemática")
-%%
+data=[t;qs(3,:);qs(12,:);dqs(3,:);dqs(12,:)].';
 writematrix(data,"trajectory_data.csv");
