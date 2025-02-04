@@ -145,7 +145,7 @@ for i=1:length(qs)
         [q_act(10);q_act(11)]+rotmat(q_act(12))*[L_p2_val/2;0]];
     
     mecha=line(pts(1,:),pts(2,:));
-    
-    pause(5);
+    axis([-0.8 0.8 -0.8 0.8])
+    pause(0.1);
     
 end

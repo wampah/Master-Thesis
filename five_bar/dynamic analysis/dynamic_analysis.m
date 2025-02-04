@@ -1,6 +1,16 @@
+% Código del análisis dinámico del movimiento rectilíneo del efector de un
+% mecanismo 5 barras
+%
+%Autor: Juan Pablo Reyes
+
+%%
 clear all
 close all
 %% Ecuaciones de restricción y actuación
+% Define las ecuaciones de restricción y actuación en coordenadas
+% generalizadas del mecanismo 5 barras
+
+% Define las variables
 syms t...
     L_p1 L_p2 L_d1 L_d2 ...
     O_1x O_2x O_1y O_2y...
@@ -25,6 +35,7 @@ q=[x_p1;y_p1;phi_p1;...
     x_d2;y_d2;phi_d2;...
     x_p2;y_p2;phi_p2];
 
+% Derivadas del vector de coordenadas generalizadas
 dq=[dx_p1;dy_p1;dphi_p1;...
     dx_d1;dy_d1;dphi_d1;...
     dx_d2;dy_d2;dphi_d2;...
@@ -52,6 +63,7 @@ eq5=[x_p2;y_p2]+rotmat(phi_p2)*[L_p2/2;0]==[O_2x;O_2y];
 % Ecuación del efector
 eq6=[p_x_0+t*v_lin*cos(theta_act);p_y_0+t*v_lin*sin(theta_act)]==[x_d1;y_d1]+rotmat(phi_d1)*[L_d1/2;0];
 
+% Vector de ecuaciones de resticción y actuación PHI
 PHI=[rhs(eq1)-lhs(eq1);rhs(eq2)-lhs(eq2);rhs(eq3)-lhs(eq3);rhs(eq4)-lhs(eq4);rhs(eq5)-lhs(eq5);rhs(eq6)-lhs(eq6)];
 
 % Parámetros
@@ -68,13 +80,16 @@ L_p2_val=0.2;
 L_d1_val=0.4;
 L_d2_val=0.4;
 
-% Sustituye parámetros
+% Sustituye parámetros en PHI
 PHI=subs(PHI,[O_1x O_2x O_1y O_2y p_x_0 p_y_0 v_lin theta_act L_p1 L_p2 L_d1 L_d2],[O_1x_val O_2x_val O_1y_val O_2y_val p_x_0_val p_y_0_val v_lin_val theta_act_val L_p1_val L_p2_val L_d1_val L_d2_val]);
 
+% Derivada de PHI respecto al tiempo
 PHI_t=diff(PHI,t);
 
+% Segunda derivada de PHI respecto al tiempo
 PHI_tt=diff(PHI,t,t);
 
+% Matriz de derivadas parciales de PHI respecto a q
 PHI_q=[diff(PHI,q(1)) diff(PHI,q(2)) diff(PHI,q(3)) ...
     diff(PHI,q(4)) diff(PHI,q(5)) diff(PHI,q(6)) ...
     diff(PHI,q(7)) diff(PHI,q(8)) diff(PHI,q(9)) ...
@@ -151,7 +166,7 @@ for i=t
             qs=[qs q_0];
             break
         end
-
+        
         q_0=q_1;
         j=j+1;
     end
