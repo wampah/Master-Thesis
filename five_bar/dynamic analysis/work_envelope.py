@@ -3,72 +3,69 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 from shapely.geometry import Polygon, Point
+from shapely.strtree import STRtree
 
+# Read Data
+df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'feasible_points.parquet'), engine="pyarrow")
 
-df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'feasible_points.parquet'), engine='pyarrow')
+# Rename columns
+df.columns = ['q1', 'q2', 'effx', 'effy']
 
-custom_headers = ['q1', 'q2', 'effx', 'effy']
-df.columns = custom_headers
+# Convert to polar
+df["theta"] = np.arctan2(df["effy"], df["effx"])
+df["r"] = np.sqrt(df["effy"]**2 + df["effx"]**2)
 
-df["theta"]=np.arctan2(df["effy"],df["effx"])
-df["r"]=np.sqrt(df["effy"]**2+df["effx"]**2)
-
+# Sort by theta
 df_sorted = df.sort_values('theta')
 
-
+# Compute outer and inner boundaries
 bins = pd.cut(df_sorted['theta'], bins=100)
+effx_out, effy_out, effx_in, effy_in = [], [], [], []
 
-effx_out = []
-effy_out = []
-
-effx_in = []
-effy_in = []
-
-grouped = df_sorted.groupby(bins)
-for _, group in grouped:
+for _, group in df_sorted.groupby(bins):
     if not group.empty:
-        min_row = group.loc[group['r'].idxmin()]
-        max_row = group.loc[group['r'].idxmax()]
-        effx_in.append(min_row['effx'])
-        effy_in.append(min_row['effy'])
-        effx_out.append(max_row['effx'])
-        effy_out.append(max_row['effy'])
+        min_row, max_row = group.loc[group['r'].idxmin()], group.loc[group['r'].idxmax()]
+        effx_in.append(min_row['effx']), effy_in.append(min_row['effy'])
+        effx_out.append(max_row['effx']), effy_out.append(max_row['effy'])
 
-fig1,ax1=plt.subplots()
-
-ax1.plot(effx_out,effy_out,"r*")
-ax1.plot(effx_in,effy_in,"k*")
-
-
-eff_vals=df[["effx","effy"]].to_numpy()
-ax1.plot(eff_vals[:,0], eff_vals[:,1], '*',markersize=0.5)
-
-plt.show()
-def generate_random_points_between_polygons(outer_polygon, inner_polygon, num_points):
-    pointsx = []
-    pointsy = []
-    minx, miny, maxx, maxy = outer_polygon.bounds
-    while len(pointsx) < num_points:
-        random_point = Point(np.random.uniform(minx, maxx), np.random.uniform(miny, maxy))
-        if outer_polygon.contains(random_point) and not inner_polygon.contains(random_point):
-            pointsx.append(random_point.x)
-            pointsy.append(random_point.y)
-    return pointsx,pointsy
-
-
+# Define Polygons
 outer_polygon = Polygon(list(zip(effx_out, effy_out)))
 inner_polygon = Polygon(list(zip(effx_in, effy_in)))
 
+# Faster Random Sampling
+def generate_random_points_fast(outer_polygon, inner_polygon, num_points):
+    minx, miny, maxx, maxy = outer_polygon.bounds
+    random_x = np.random.uniform(minx, maxx, num_points)
+    random_y = np.random.uniform(miny, maxy, num_points)
+    points = np.vstack((random_x, random_y)).T
+    point_objs = [Point(p) for p in points]
 
-random_pointsx,random_pointsy = generate_random_points_between_polygons(outer_polygon, inner_polygon, 1e4)
+    # Use STRtree for fast containment check
+    tree = STRtree(point_objs)
+    inside_outer = np.array([outer_polygon.contains(p) for p in point_objs])
+    outside_inner = np.array([not inner_polygon.contains(p) for p in point_objs])
 
-a=np.vstack((random_pointsx, random_pointsy)).T
-np.savetxt(os.path.join(os.path.dirname(__file__), 'random_pts.csv'), a, delimiter=",")
+    valid_indices = inside_outer & outside_inner
+    return points[valid_indices, 0], points[valid_indices, 1]
 
-fig2,ax2=plt.subplots()
+# Generate Faster
+random_pointsx, random_pointsy = generate_random_points_fast(outer_polygon, inner_polygon, int(1e6))
+print("Generated Points:",len(random_pointsx))
+# Save Faster
+pd.DataFrame({"x": random_pointsx, "y": random_pointsy}).to_csv("random_pts.csv", index=False)
 
+# First Plot: Original Feasible Points and Boundaries
+fig1, ax1 = plt.subplots()
+ax1.scatter(df["effx"], df["effy"], s=0.01, color="b", label="Feasible Points")
+ax1.scatter(effx_out, effy_out, s=10, color="r", label="Outer Boundary", marker="*")
+ax1.scatter(effx_in, effy_in, s=10, color="k", label="Inner Boundary", marker="*")
+ax1.legend()
+ax1.set_title("Feasible Points with Inner/Outer Boundaries")
 
-ax2.plot(random_pointsx,random_pointsy,"g*",markersize=0.5)
-
+# Second Plot: Random Sampled Points
+fig2, ax2 = plt.subplots()
+ax2.scatter(random_pointsx, random_pointsy, s=0.01, color="k", label="Random Points")
+ax2.legend()
+ax2.set_title("Random Points Inside Feasible Region")
 
 plt.show()

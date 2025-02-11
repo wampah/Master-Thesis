@@ -1,5 +1,10 @@
-clc;
-clear all
+% This code does static force analysis on the 5 bar mechanism
+%
+% Author: Juan Pablo Reyes
+%%
+clearvars
+close all
+%% Symbolic variables
 
 syms F1x F1y ...
         F2x F2y ...
@@ -16,7 +21,7 @@ syms F1x F1y ...
 
 eqs=[F1x+F2x==0;
     F1y+F2y==0;
-    T1-sin(pi-q1)*L_p*F2x-cos(pi-q1)*L_p*F2y;
+    T1-sin(pi-q1)*L_p*F2x-cos(pi-q1)*L_p*F2y==0;
     F2x==-F3x;
     F2y==-F3y;
     F3x+F4x==0;
@@ -39,12 +44,14 @@ eqs=[F1x+F2x==0;
 
 [A,b]=equationsToMatrix(eqs,[F1x F1y F2x F2y F3x F3y F4x F4y F5x F5y F6x F6y F7x F7y F8x F8y F9x F9y F10x F10y T1 T2]);
 sol=A\b;
-solFcn=matlabFunction(subs(sol,[L_p L_d Fa],[0.2 0.4 3]),'Vars',{gamma,q1,q2,q3,q4});
+solFcn=matlabFunction(subs(sol,[L_p L_d Fa],[0.2*0.5 0.4*0.5 3]),'Vars',{gamma,q1,q2,q3,q4});
 
 %%
 data=parquetread("initial_pts.parquet");
-mat=[];
-for i=1:9679
+[m,n]=size(data);
+%%
+mat=zeros(4,n);
+for i=1:m
     row=data(i,:);
     q1_=row.data1;
     q2_=row.data2;
@@ -62,9 +69,11 @@ for i=1:9679
      [x1,v1]=fminsearch(mot1,0);
      [x2,v2]=fminsearch(mot2,0);
     disp(i)
-    mat=[mat;effx,effy,-v1,-v2];
+    mat(:,i)=[effx,effy,-v1,-v2];
     
 end
+%%
+mat=mat.';
 %%
 figure;
 scatter3(mat(:,1), mat(:,2), mat(:,3), 20, mat(:,3), 'filled'); % Heatmap for v1
@@ -84,10 +93,8 @@ title('Heatmap of Torque 2');
 function torque1=gettorque1(q1_v,q2_v,q3_v,q4_v,gamma_v,solFcn)
     sol=solFcn(gamma_v,q1_v,q2_v,q3_v,q4_v);
     torque1=sol(end);
-    torque2=sol(end-1);
 end
 function torque2=gettorque2(q1_v,q2_v,q3_v,q4_v,gamma_v,solFcn)
     sol=solFcn(gamma_v,q1_v,q2_v,q3_v,q4_v);
-    torque1=sol(end);
     torque2=sol(end-1);
 end
