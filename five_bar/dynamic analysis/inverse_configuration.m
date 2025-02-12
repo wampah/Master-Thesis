@@ -142,7 +142,7 @@ for i=2:configurations
         if (max(abs(phi_val))<=tol)
             qs(:,i)=q_0;
             effs(:,i)=[q_0(4);q_0(5)]+rotmat(q_0(6))*[L_d1_val/2;0];
-            if mod(i, (configurations/1000)) == 0; fprintf('Progress: %.1f %%\n',i/(configurations/100)); end
+            if mod(i, (i/1000)) == 0; fprintf('Progress: %.1f %%\n',i/(configurations/100)); end
             break
         end
 

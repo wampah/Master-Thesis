@@ -50,9 +50,10 @@ def generate_random_points_fast(outer_polygon, inner_polygon, num_points):
 
 # Generate Faster
 random_pointsx, random_pointsy = generate_random_points_fast(outer_polygon, inner_polygon, int(1e6))
-print("Generated Points:",len(random_pointsx))
+print("Generated x Points:",len(random_pointsx))
+print("Generated y Points:",len(random_pointsy))
 # Save Faster
-pd.DataFrame({"x": random_pointsx, "y": random_pointsy}).to_csv("random_pts.csv", index=False)
+pd.DataFrame({"x": random_pointsx, "y": random_pointsy}).to_csv(os.path.join(os.path.dirname(__file__), 'random_pts.csv'), index=False)
 
 # First Plot: Original Feasible Points and Boundaries
 fig1, ax1 = plt.subplots()
