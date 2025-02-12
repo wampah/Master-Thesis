@@ -99,6 +99,8 @@ q_0=[-0.14571*scale;0.07071*scale;deg2rad(135);...
 % Tries to solve for data point in feasible_pts
 configurations=size(feasible_pts,1);
 
+disp(configurations)
+
 % Preallocate arrays
 qs=zeros(12,configurations);
 effs=zeros(2,configurations);
