@@ -63,11 +63,11 @@ def controller(model, data):
     
     
     if(data.time<2):
-        data.ctrl[0] = -100*(q1-(q1_0))-5*dq1
-        data.ctrl[1] = -100*(q2-(q2_0))-5*dq2
+        data.ctrl[0] = -10*(q1-(q1_0))-0.5*dq1
+        data.ctrl[1] = -10*(q2-(q2_0))-0.5*dq2
     else:
-        data.ctrl[0] = -100*(q1-(interp_q1(data.time-2)))-30*(dq1-interp_dq1(data.time-2))
-        data.ctrl[1] = -100*(q2-(interp_q2(data.time-2)))-30*(dq2-interp_dq2(data.time-2))
+        data.ctrl[0] = -0.01*(q1-(interp_q1(data.time-2)))-0.5*(dq1-interp_dq1(data.time-2))
+        data.ctrl[1] = -0.01*(q2-(interp_q2(data.time-2)))-0.5*(dq2-interp_dq2(data.time-2))
         
 
 

@@ -49,10 +49,10 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
 		<framelinvel objtype="body" objname="end_effector"/>
 	</sensor>
     <actuator>
-        <position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="3" kv="0.1"/>
-        <position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="3" kv="0.1"/>
-        <!motor joint="joint1" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
-        <!motor joint="joint2" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
+        <!position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="3" kv="0.1"/>
+        <!position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="3" kv="0.1"/>
+        <motor joint="joint1" ctrllimited="true"  ctrlrange="-20.0 20.0"/>
+        <motor joint="joint2" ctrllimited="true"  ctrlrange="-20.0 20.0"/>
     </actuator>
 </mujoco>
 """
@@ -106,8 +106,8 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
 		<framelinvel objtype="body" objname="end_effector"/>
 	</sensor>
     <actuator>
-        <position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="10" kv="0.1"/>
-        <position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="10" kv="0.1"/>
+        <position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="10" kv="1"/>
+        <position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="10" kv="1"/>
         <!motor joint="joint1" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
         <!motor joint="joint2" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
     </actuator>

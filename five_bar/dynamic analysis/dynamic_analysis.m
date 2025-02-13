@@ -22,7 +22,7 @@ O_2y_val=0*scale;
 % Initial position, velocity and angle for rectilinear motion
 p_x_0_val=-0.12*scale;
 p_y_0_val=0.3*scale;
-v_lin_val=0.2;
+v_lin_val=0.1;
 theta_act_val=deg2rad(30);
 
 % Link lengths
@@ -151,7 +151,7 @@ tol=1e-6;
 max_iters=50;
 
 % Time vector
-t=linspace(0,1,1000);
+t=0:0.01:2;
 
 % Initial feasible configuration
 q_0=[-0.14571*scale;0.07071*scale;deg2rad(135);...

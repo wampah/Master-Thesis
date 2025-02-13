@@ -109,3 +109,6 @@ WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Ti
 Wed Feb 12 16:37:25 2025
 WARNING: Nan, Inf or huge value in QACC at DOF 0. The simulation is unstable. Time = 0.0300.
 
+Thu Feb 13 14:08:14 2025
+WARNING: mju_openResource: unknown file '.\five_bar\assets\5_barras_.xml'
+
