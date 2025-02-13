@@ -35,8 +35,6 @@ def init_controller(model,data):
 
 def controller(model, data):
     #put the controller here. This function is called inside the simulation.
-    # pass
-    # Force = -c*vx*|v| i + -c*vy*|v| j + -c*vz*|v| k
     q1=data.qpos[0]
     q2=data.qpos[2]
     
@@ -49,19 +47,11 @@ def controller(model, data):
     pos_sens_x=data.sensordata[0]
     pos_sens_y=data.sensordata[1]
     
-    #v = np.sqrt(vx**2+vy**2)
     c = 0.5
     k=10
     f=.05
-    # data.qfrc_applied[0] = -c*vx*abs(vx)-k*px-f*np.sign(vx);
-    # data.qfrc_applied[1] = -c*vy*abs(vy)-k*py-f*np.sign(vy);
-    # data.qfrc_applied[2] = -c*vz*v;
-    #data.xfrc_applied[1][2] = -c*vz*v-k*(pz-1);
     
-
-    
-    
-    
+    #Gives time for the robot to get to the initial position of the trajectory
     if(data.time<2):
         data.ctrl[0] = -10*(q1-(q1_0))-0.5*dq1
         data.ctrl[1] = -10*(q2-(q2_0))-0.5*dq2
@@ -175,7 +165,7 @@ glfw.set_scroll_callback(window, scroll)
 # cam.elevation = -45
 # cam.distance = 2
 # cam.lookat = np.array([0.0, 0.0, 0])
-cam.azimuth = 90.11676025390628 ; cam.elevation = -50.03149414062499 ; cam.distance =  3
+cam.azimuth = 90.11676025390628 ; cam.elevation = -50.03149414062499 ; cam.distance =  2
 cam.lookat =np.array([ 0.0 , 0.0 , 0.0 ])
 
 #initialize the controll er
