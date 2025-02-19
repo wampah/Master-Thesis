@@ -4,19 +4,21 @@ from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
 import os
 import sys
 
+
+
 def train(env,algo_name):
     path=os.path.join(os.path.dirname(__file__), 'training_results\\'+algo_name)
     
     if algo_name.lower() == 'ddpg':
-        model = DDPG('MlpPolicy', env, verbose=1)
+        model = DDPG('MlpPolicy', env, verbose=1, device="cuda")
     elif algo_name.lower() == 'ppo':
-        model = PPO('MlpPolicy', env, verbose=1)
+        model = PPO('MlpPolicy', env, verbose=1, device="cuda")
     elif algo_name.lower() == 'a2c':
-        model = A2C('MlpPolicy', env, verbose=1)
+        model = A2C('MlpPolicy', env, verbose=1, device="cuda")
     elif algo_name.lower() == 'sac':
-        model = SAC('MlpPolicy', env, verbose=1)
+        model = SAC('MlpPolicy', env, verbose=1, device="cuda")
     elif algo_name.lower() == 'td3':
-        model = TD3('MlpPolicy', env, verbose=1)
+        model = TD3('MlpPolicy', env, verbose=1, device="cuda")
     else:
         raise ValueError(f"Algorithm {algo_name} not recognized. Please choose 'ddpg', 'ppo', 'a2c', 'sac' or td3.")
     
@@ -52,7 +54,7 @@ if __name__ == "__main__":
     else:
         algo_name = sys.argv[1]
         
-        env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
+        env = gym.make("five_bar-v0", render_mode="human", camera_name="free")
         
         train(env,algo_name)
         

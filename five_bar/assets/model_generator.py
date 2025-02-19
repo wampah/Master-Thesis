@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,q0):
+def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
     <compiler angle="degree" inertiafromgeom="true"/>
@@ -36,8 +36,8 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
             </body>
         </body>
         <body name="target" pos=".125 .125 0">
-			<joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref=".25" stiffness="0" type="slide"/>
-			<joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref=".25" stiffness="0" type="slide"/>
+			<joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref=".125" stiffness="0" type="slide"/>
+			<joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref=".125" stiffness="0" type="slide"/>
 			<geom conaffinity="0" contype="0" name="target" pos="0 0 0" rgba="0.9 0.2 0.2 1" size="0.01" type="sphere"/>
 	    </body>
     </worldbody>
@@ -51,14 +51,14 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
     <actuator>
         <!position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="3" kv="0.1"/>
         <!position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="3" kv="0.1"/>
-        <motor joint="joint1" ctrllimited="true"  ctrlrange="-20.0 20.0"/>
-        <motor joint="joint2" ctrllimited="true"  ctrlrange="-20.0 20.0"/>
+        <motor joint="joint1" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
+        <motor joint="joint2" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
     </actuator>
 </mujoco>
 """
     return xml_template
 
-def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,q0):
+def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
     <compiler meshdir="./mesh" angle="degree" inertiafromgeom="true"/>
@@ -93,8 +93,8 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
             </body>
         </body>
         <body name="target" pos=".125 .125 0">
-			<joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref=".25" stiffness="0" type="slide"/>
-			<joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref=".25" stiffness="0" type="slide"/>
+			<joint armature="0" axis="1 0 0" damping="0" limited="true" name="target_x" pos="0 0 0" range="-1 1" ref=".125" stiffness="0" type="slide"/>
+			<joint armature="0" axis="0 1 0" damping="0" limited="true" name="target_y" pos="0 0 0" range="-1 1" ref=".125" stiffness="0" type="slide"/>
 			<geom conaffinity="0" contype="0" name="target" pos="0 0 0" rgba="0.9 0.2 0.2 1" size="0.01" type="sphere"/>
 	    </body>
     </worldbody>
@@ -108,8 +108,8 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
     <actuator>
         <position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="10" kv="1"/>
         <position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="10" kv="1"/>
-        <!motor joint="joint1" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
-        <!motor joint="joint2" ctrllimited="true"  ctrlrange="-10.0 10.0"/>
+        <!motor joint="joint1" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
+        <!motor joint="joint2" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
     </actuator>
     <asset>
         <mesh name="Proximal_Link_1" file="Proximal Link 1.stl" scale="0.001 0.001 0.001"/>
@@ -139,6 +139,7 @@ L_d2=0.4*scale
 link_width=0.02
 link_height=0.025
 link_separation=0.003
+max_torque=1.6
 q0=[2.356194490192345,
     0.999107158546108,
     -0.999107158546108,
@@ -146,9 +147,9 @@ q0=[2.356194490192345,
 
 
 
-xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,q0)
+xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0)
 
-xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,q0)
+xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0)
 
 # Save to a file
 with open(os.path.join(os.path.dirname(__file__), '5_barras.xml'), "w") as f:

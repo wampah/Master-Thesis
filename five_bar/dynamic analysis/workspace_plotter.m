@@ -23,6 +23,8 @@ color2 = [0.5 1 0.5];  % Soft Green
 color3 = [0.5 0.5 1];  % Soft Blue
 color4 = [1 1 0.6];    % Soft Yellow
 
+color5 = [1 1 1];    % Soft Yellow
+
 % Create figure
 figure;
 
@@ -67,3 +69,15 @@ sgtitle('Workspace for Available Configurations', 'FontSize', 16, 'FontWeight', 
 
 % Save as high-resolution image
 set(gcf, 'Color', 'w'); % White background
+
+figure;
+ax = axes;
+set(gca, 'Color', 'none');  % Set axes background transparent
+set(gcf, 'Color', 'none');  % Set figure background transparent
+scatter(x, y, 10, color5, 'filled', 'MarkerFaceAlpha', 0.3);
+title('Case 4: (-,-)', 'FontSize', 14, 'FontWeight', 'Bold', 'Interpreter', 'latex');
+xlabel('$X$', 'FontSize', 12, 'Interpreter', 'latex');
+ylabel('$Y$', 'FontSize', 12, 'Interpreter', 'latex');
+xlim([-0.4 0.4]); ylim([-0.4 0.4]);
+axis equal; grid on;
+
