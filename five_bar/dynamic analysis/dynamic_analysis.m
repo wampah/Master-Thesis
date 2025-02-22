@@ -174,14 +174,18 @@ for i=1:length(t)
 
         % Calculate the update value using Newton Rhapson
         q_1=q_0-phi_q_val\phi_val;
-
+        %disp(q_1)
+        %pause(5)
         % End if the tolerance is satisfied or the max iterations are reached
         if (j>max_iters)
             qs(:,i)=q_ant;
+            disp("Itermax reached")
+            pause(5)
             break
         end
         if (max(abs(phi_val))<=tol)
             qs(:,i)=q_0;
+
             break
         end
 

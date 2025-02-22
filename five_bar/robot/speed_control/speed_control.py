@@ -5,7 +5,7 @@ import tkinter as tk
 import math
 
 # Configure Serial Port
-SERIAL_PORT = "COM13"  # Change accordingly
+SERIAL_PORT = "COM14"  # Change accordingly
 BAUD_RATE = 115200
 BYTE_SIZE = 8
 START_BYTE_1 = 0xAB
@@ -74,8 +74,8 @@ speedSetpoint2 & 0xFF,
     ser.write(bytes(packet1))
     ser.write(bytes(packet2))
     
-    print(f"Data SNT: {' '.join(f'{x:02X}' for x in packet1)}")
-    print(f"Data SNT: {' '.join(f'{x:02X}' for x in packet2)}")
+    print(f"Python Data SNT: {' '.join(f'{x:02X}' for x in packet1)}")
+    print(f"Python Data SNT: {' '.join(f'{x:02X}' for x in packet2)}")
 
 def reset_sliders():
     slider1.set(0)  # Reset slider1 to 0
@@ -95,7 +95,7 @@ def read_data():
     while True:
         if ser.in_waiting > 0:
             response = ser.readline().strip()
-            print("Data RCV:", response)
+            print("Python Data RCV:", response)
 
 read_thread = threading.Thread(target=read_data, daemon=True)
 

@@ -54,7 +54,7 @@ if __name__ == "__main__":
     else:
         algo_name = sys.argv[1]
         
-        env = gym.make("five_bar-v0", render_mode="human", camera_name="free")
+        env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
         
         train(env,algo_name)
         
