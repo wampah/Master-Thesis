@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import interp1d
 
-df = pd.read_csv(os.path.join(os.path.dirname(__file__), 'trajectory_data.csv'), delimiter=",",header=None, names=['time', 'q1', 'q2', 'dq1', 'dq2'])
+df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'data/trajectory_data.parquet'))
 
 interp_q1 = interp1d(df['time'], df['q1'], kind='linear', fill_value='extrapolate')
 interp_q2 = interp1d(df['time'], df['q2'], kind='linear', fill_value='extrapolate')
