@@ -41,12 +41,16 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         
         vector=self.get_body_com("end_effector")-self.get_body_com("target")
         rwd_distance=-np.linalg.norm(vector)
-        rwd_control=-np.square(action).sum()
+        
+        print(self.model.opt.timestep)
+
+        rwd_control =- self.model.opt.timestep * (abs(self.data.qvel[0] * action[0]) + abs(self.data.qvel[2] * action[1]))
+        
+        #rwd_control=-np.square(action).sum()
         
         coef_dist=1
-        coef_action=0.1
-        
-        rwd=coef_dist*rwd_distance+coef_action*rwd_control
+        coef_action=0.25
+        rwd=coef_dist*rwd_distance +coef_action*rwd_control
         
         self.do_simulation(action, self.frame_skip)
         if self.render_mode=="human":
@@ -81,9 +85,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         random_effs = self.initial_pts[random_index2, :]
 
         self.goal=np.array([random_effs[4],random_effs[5]])
-        
-        print(self.goal)
-        
+                
         qpos = np.array([j1,j3,j2,j4,self.goal[0],self.goal[1]])
 
         qvel=np.zeros(self.model.nv)
