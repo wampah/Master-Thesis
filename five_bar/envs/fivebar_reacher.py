@@ -40,10 +40,11 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
     def step(self, action):
         
         vector=self.get_body_com("end_effector")-self.get_body_com("target")
-        rwd_distance=-np.linalg.norm(vector)
         
-        print(self.model.opt.timestep)
-
+        dist_rwd_cap=100
+        dist_rwd_steepness=2
+        rwd_distance=1/(dist_rwd_steepness*np.linalg.norm(vector)+1/dist_rwd_cap)
+        
         rwd_control =- self.model.opt.timestep * (abs(self.data.qvel[0] * action[0]) + abs(self.data.qvel[2] * action[1]))
         
         #rwd_control=-np.square(action).sum()
