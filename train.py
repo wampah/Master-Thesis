@@ -5,24 +5,25 @@ import os
 import sys
 
 
+LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 
 def train(env,algo_name):
     path=os.path.join(os.path.dirname(__file__), 'training_results\\'+algo_name)
     
     if algo_name.lower() == 'ddpg':
-        model = DDPG('MlpPolicy', env, verbose=1, device="cuda")
+        model = DDPG('MlpPolicy', env, verbose=1, device="cuda",tensorboard_log=LOG_DIR)
     elif algo_name.lower() == 'ppo':
-        model = PPO('MlpPolicy', env, verbose=1, device="cuda")
+        model = PPO('MlpPolicy', env, verbose=1, device="cuda",tensorboard_log=LOG_DIR)
     elif algo_name.lower() == 'a2c':
-        model = A2C('MlpPolicy', env, verbose=1, device="cuda")
+        model = A2C('MlpPolicy', env, verbose=1, device="cuda",tensorboard_log=LOG_DIR)
     elif algo_name.lower() == 'sac':
-        model = SAC('MlpPolicy', env, verbose=1, device="cuda")
+        model = SAC('MlpPolicy', env, verbose=1, device="cuda",tensorboard_log=LOG_DIR)
     elif algo_name.lower() == 'td3':
-        model = TD3('MlpPolicy', env, verbose=1, device="cuda")
+        model = TD3('MlpPolicy', env, verbose=1, device="cuda",tensorboard_log=LOG_DIR)
     else:
         raise ValueError(f"Algorithm {algo_name} not recognized. Please choose 'ddpg', 'ppo', 'a2c', 'sac' or td3.")
     
-    model.learn(total_timesteps=500_000)
+    model.learn(total_timesteps=5_000_000)
 
     model.save(path)
     

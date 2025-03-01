@@ -45,12 +45,12 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         dist_rwd_steepness=2
         rwd_distance=1/(dist_rwd_steepness*np.linalg.norm(vector)+1/dist_rwd_cap)
         
-        rwd_control =- self.model.opt.timestep * (abs(self.data.qvel[0] * action[0]) + abs(self.data.qvel[2] * action[1]))
+        rwd_control =- self.model.opt.timestep * ((self.data.qvel[0] * action[0])**2 + (self.data.qvel[2] * action[1])**2)
         
         #rwd_control=-np.square(action).sum()
         
         coef_dist=1
-        coef_action=0.25
+        coef_action=20
         rwd=coef_dist*rwd_distance +coef_action*rwd_control
         
         self.do_simulation(action, self.frame_skip)
