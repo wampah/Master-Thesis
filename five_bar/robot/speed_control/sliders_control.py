@@ -49,24 +49,24 @@ def update_values():
     slider1_value_label.config(text=f"Slider 1: {slider1.get()}")
     slider2_value_label.config(text=f"Slider 2: {slider2.get()}")
 
-    speedSetpoint1 = int(slider1.get())
-    speedSetpoint2 = int(slider2.get())
+    controlSetpoint1 = int(slider1.get())
+    controlSetpoint2 = int(slider2.get())
 
     # Construct message based on mode
     if args.mode == "speed":
         message1 = [
             0xA2, 0x00, 0x00, 0x00,
-            speedSetpoint1 & 0xFF,
-            (speedSetpoint1 >> 8) & 0xFF,
-            (speedSetpoint1 >> 16) & 0xFF,
-            (speedSetpoint1 >> 24) & 0xFF
+            controlSetpoint1 & 0xFF,
+            (controlSetpoint1 >> 8) & 0xFF,
+            (controlSetpoint1 >> 16) & 0xFF,
+            (controlSetpoint1 >> 24) & 0xFF
         ]
         message2 = [
             0xA2, 0x00, 0x00, 0x00,
-            speedSetpoint2 & 0xFF,
-            (speedSetpoint2 >> 8) & 0xFF,
-            (speedSetpoint2 >> 16) & 0xFF,
-            (speedSetpoint2 >> 24) & 0xFF
+            controlSetpoint2 & 0xFF,
+            (controlSetpoint2 >> 8) & 0xFF,
+            (controlSetpoint2 >> 16) & 0xFF,
+            (controlSetpoint2 >> 24) & 0xFF
         ]
     
     elif args.mode == "position":
@@ -76,34 +76,34 @@ def update_values():
             0x00, 
             max_speed & 0xFF,
             (max_speed >> 8) & 0xFF,
-            speedSetpoint1 & 0xFF,
-            (speedSetpoint1 >> 8) & 0xFF,
-            (speedSetpoint1 >> 16) & 0xFF,
-            (speedSetpoint1 >> 24) & 0xFF
+            controlSetpoint1 & 0xFF,
+            (controlSetpoint1 >> 8) & 0xFF,
+            (controlSetpoint1 >> 16) & 0xFF,
+            (controlSetpoint1 >> 24) & 0xFF
         ]
         message2 = [
             0xA4, 
             0x00, 
             max_speed & 0xFF,
             (max_speed >> 8) & 0xFF,
-            speedSetpoint2 & 0xFF,
-            (speedSetpoint2 >> 8) & 0xFF,
-            (speedSetpoint2 >> 16) & 0xFF,
-            (speedSetpoint2 >> 24) & 0xFF
+            controlSetpoint2 & 0xFF,
+            (controlSetpoint2 >> 8) & 0xFF,
+            (controlSetpoint2 >> 16) & 0xFF,
+            (controlSetpoint2 >> 24) & 0xFF
         ]
     
     else:  # Torque mode
         message1 = [
             0xA1, 0x00, 0x00, 0x00,
-            speedSetpoint1 & 0xFF,
-            (speedSetpoint1 >> 8) & 0xFF,
+            controlSetpoint1 & 0xFF,
+            (controlSetpoint1 >> 8) & 0xFF,
             0x00,
             0x00
         ]
         message2 = [
             0xA1, 0x00, 0x00, 0x00,
-            speedSetpoint2 & 0xFF,
-            (speedSetpoint2 >> 8) & 0xFF,
+            controlSetpoint2 & 0xFF,
+            (controlSetpoint2 >> 8) & 0xFF,
             0x00,
             0x00
         ]
