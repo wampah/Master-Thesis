@@ -152,10 +152,10 @@ xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
 xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0)
 
 # Save to a file
-with open(os.path.join(os.path.dirname(__file__), '5_barras.xml'), "w") as f:
+with open(os.path.join(os.path.dirname(__file__), '5_bar.xml'), "w") as f:
     f.write(xml_content)
 
-with open(os.path.join(os.path.dirname(__file__), '5_barras_realistic.xml'), "w") as f:
+with open(os.path.join(os.path.dirname(__file__), '5_bar_realistic.xml'), "w") as f:
     f.write(xml_realistic)
 
 print("MuJoCo XML file generated successfully!")
