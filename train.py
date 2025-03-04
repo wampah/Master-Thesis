@@ -23,7 +23,7 @@ def train(env,algo_name):
     else:
         raise ValueError(f"Algorithm {algo_name} not recognized. Please choose 'ddpg', 'ppo', 'a2c', 'sac' or td3.")
     
-    model.learn(total_timesteps=5_000_000,progress_bar=True)
+    model.learn(total_timesteps=500,progress_bar=True)
 
     model.save(path)
     
@@ -67,6 +67,7 @@ if __name__ == "__main__":
         for i in range(10000):
             action, _state = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
+            print(done)
             vec_env.render("human")
             # VecEnv resets automatically
             # if done:
