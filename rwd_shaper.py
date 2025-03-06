@@ -68,6 +68,10 @@ def objective(trial):
     energies, distances = [], []
     current_energy, current_distance = [], []
     
+    vec_env = model.get_env()
+        
+    obs = vec_env.reset()
+
     episodes = 0
     while episodes < 1000:
         action, _ = model.predict(obs, deterministic=True)
