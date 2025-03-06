@@ -15,10 +15,48 @@ ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
 # GUI Setup
 root = tk.Tk()
 root.title("Motor Control")
-root.geometry("400x400")
+root.geometry("400x450")
 
 # Default mode
 mode = tk.StringVar(value="speed")
+
+# Frame for motor data
+data_frame = tk.Frame(root)
+data_frame.pack()
+
+# Column 1 (Motor 1)
+motor1_frame = tk.Frame(data_frame)
+motor1_frame.grid(row=0, column=0, padx=10, pady=10)
+tk.Label(motor1_frame, text="Motor 1", font=("Arial", 12, "bold")).pack()
+motor1_temp_label = tk.Label(motor1_frame, text="Temp: --°C")
+motor1_temp_label.pack()
+motor1_current_label = tk.Label(motor1_frame, text="Current: -- A")
+motor1_current_label.pack()
+motor1_voltage_label = tk.Label(motor1_frame, text="Voltage: -- V")
+motor1_voltage_label.pack()
+motor1_speed_label = tk.Label(motor1_frame, text="Speed: --°/s")
+motor1_speed_label.pack()
+motor1_angle_label = tk.Label(motor1_frame, text="Angle: --°")
+motor1_angle_label.pack()
+motor1_brake_label = tk.Label(motor1_frame, text="Brake Status: --")
+motor1_brake_label.pack()
+
+# Column 2 (Motor 2)
+motor2_frame = tk.Frame(data_frame)
+motor2_frame.grid(row=0, column=1, padx=10, pady=10)
+tk.Label(motor2_frame, text="Motor 2", font=("Arial", 12, "bold")).pack()
+motor2_temp_label = tk.Label(motor2_frame, text="Temp: --°C")
+motor2_temp_label.pack()
+motor2_current_label = tk.Label(motor2_frame, text="Current: -- A")
+motor2_current_label.pack()
+motor2_voltage_label = tk.Label(motor2_frame, text="Voltage: -- V")
+motor2_voltage_label.pack()
+motor2_speed_label = tk.Label(motor2_frame, text="Speed: --°/s")
+motor2_speed_label.pack()
+motor2_angle_label = tk.Label(motor2_frame, text="Angle: --°")
+motor2_angle_label.pack()
+motor2_brake_label = tk.Label(motor2_frame, text="Brake Status: --")
+motor2_brake_label.pack()
 
 # Mode settings
 MODE_SETTINGS = {
@@ -26,6 +64,28 @@ MODE_SETTINGS = {
     "position": {"min": -36000, "max": 36000, "step": 1},
     "torque": {"min": -100, "max": 100, "step": 1},
 }
+
+# Function to Update GUI Labels
+def update_motor_data_9c(motor_id, temp, current, speed, angle):
+    if motor_id == 1:
+        motor1_temp_label.config(text=f"Temp: {temp:.2f}°C")
+        motor1_current_label.config(text=f"Current: {current:.2f} A")
+        motor1_speed_label.config(text=f"Speed: {speed:.2f}°/s")
+        motor1_angle_label.config(text=f"Angle: {angle:.2f}°")
+
+    elif motor_id == 2:
+        motor2_temp_label.config(text=f"Temp: {temp:.2f}°C")
+        motor2_current_label.config(text=f"Current: {current:.2f} A")
+        motor2_speed_label.config(text=f"Speed: {speed:.2f}°/s")
+        motor2_angle_label.config(text=f"Angle: {angle:.2f}°")
+
+def update_motor_data_9a(motor_id, voltage, brake):
+    if motor_id == 1:
+        motor1_voltage_label.config(text=f"Voltage: {voltage:.2f}V")
+        motor1_brake_label.config(text=f"Brake Status: {brake:.0f}")
+    elif motor_id == 2:
+        motor2_voltage_label.config(text=f"Voltage: {voltage:.2f}V")
+        motor2_brake_label.config(text=f"Brake Status: {brake:.0f}")
 
 # Create mode selection (radio buttons)
 def change_mode():
@@ -133,18 +193,68 @@ slider2.bind("<ButtonRelease-1>", lambda event: update_values())
 reset_button = tk.Button(root, text="Reset Sliders", command=reset_sliders)
 reset_button.pack(pady=10)
 
+# Serial Reading Thread
 def read_data():
-    """Continuously read data from serial port."""
-    buf = b""
+    """Reads and processes serial messages."""
     while True:
-        if ser.in_waiting > 0:
-            response = ser.read(ser.in_waiting)
-            buf += response
-            if b'\n' in buf:
-                lines = buf.split(b'\n')
-                for line in lines[:-1]:  # Process complete lines
-                    print("Python Data RCV:", line.decode(errors='ignore'))
-                buf = lines[-1]  # Keep incomplete data
+        try:
+            if ser.in_waiting > 0:
+                line = ser.readline().decode(errors="ignore").strip()
+                if not line:
+                    continue
+
+                parts = line.split()  # Split by spaces
+                if "Data:" in parts:
+                    data_index = parts.index("Data:") + 1
+                    id_index=parts.index("ID:") + 1
+                    if len(parts) >= data_index + 8:
+                        data_bytes = bytes(int(h, 16) for h in parts[data_index:data_index + 8]) 
+                        
+                        if parts[id_index]=="0x241":
+                            motor_id = 1
+                        elif parts[id_index]=="0x242":
+                            motor_id = 2
+                        else:
+                            raise Exception("Motor ID error")
+                        
+                        if data_bytes[0] == 0x9C:
+                            
+                            process_9c_message(data_bytes, motor_id)
+                        elif data_bytes[0] == 0x9a:
+                            process_9a_message(data_bytes, motor_id)
+                        else:
+                            print(line)
+        except serial.SerialException as e:
+            print(f"Serial error: {e}")
+            ser.close()
+
+# Process 0x9C Message
+def process_9c_message(data_bytes, motor_id):
+    """Processes 0x9C motor response message and updates GUI labels."""
+    if len(data_bytes) != 8:
+        print("Invalid 0x9C message:", data_bytes.hex())
+        return
+
+    # Extract values
+    temperature = int.from_bytes(data_bytes[1:2], byteorder="little", signed=True)
+    current = int.from_bytes(data_bytes[2:4], byteorder="little", signed=True) * 0.01  # 0.01A/LSB
+    speed = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)  # 1dps/LSB
+    angle = int.from_bytes(data_bytes[6:8], byteorder="little", signed=True)  # 1°/LSB
+
+    # Update GUI
+    root.after(0, update_motor_data_9c, motor_id, temperature, current, speed, angle)
+
+def process_9a_message(data_bytes, motor_id):
+    """Processes 0x9A motor response message and updates GUI labels."""
+    if len(data_bytes) != 8:
+        print("Invalid 0x9A message:", data_bytes.hex())
+        return
+
+    brake = int.from_bytes(data_bytes[3:4], byteorder="little", signed=True)   # 0.01A/LSB
+    voltage = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)*0.1  # 1dps/LSB
+
+    # Update GUI
+    root.after(0, update_motor_data_9a, motor_id, voltage,brake)
 
 # Start serial reading thread
 read_thread = threading.Thread(target=read_data, daemon=True)
@@ -168,6 +278,30 @@ def send_periodic_message():
         ]
         message2 = [
             0x9c, 
+            0x00, 
+            0x00, 
+            0x00, 
+            0x00, 
+            0x00, 
+            0x00, 
+            0x00
+        ]
+        
+        # Example message (heartbeat or status request)
+        packet = bytes([START_BYTE] + message1 + message2 + [STOP_BYTE])
+        ser.write(packet)
+        message1 = [
+        0x9a, 
+        0x00, 
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00
+        ]
+        message2 = [
+            0x9a, 
             0x00, 
             0x00, 
             0x00, 
