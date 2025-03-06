@@ -2,14 +2,13 @@ import gymnasium as gym
 import five_bar
 from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
 import os
-import sys
-from stable_baselines3.common.env_checker import check_env
 import optuna
 import numpy as np
-
+import pickle
 
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 TRAIN_DIR=os.path.join(os.path.dirname(__file__), 'trained_agents')
+STUDY_DIR=os.path.join(os.path.dirname(__file__), 'optuna_studies')
 
 algo_dict = {
         "ddpg": DDPG,
@@ -93,13 +92,22 @@ def objective(trial):
     total_energy=np.nansum(avg_energy)
     precision=avg_distance[-1]
 
-    return total_energy+precision*100
+    # if precision>0.05:
+    #     target=100
+    # else:
+    #     
+    target=total_energy+precision*1000
+
+    return target
 
 if __name__ == "__main__":
     study = optuna.create_study(direction="minimize")  # Maximize the mean reward
     study.optimize(objective, n_trials=20)  # Run 20 trials
 
     print("Best Parameters:", study.best_params)
+
+    with open(os.path.join(STUDY_DIR,"optuna_study1.pkl"), "wb") as f:
+        pickle.dump(study, f)
     
     
     
