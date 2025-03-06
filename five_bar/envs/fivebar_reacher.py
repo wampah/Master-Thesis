@@ -30,7 +30,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         xml_file: str = FILE_PATH,
         frame_skip: int = 2,
         default_camera_config: Dict[str, Union[float, int]] = DEFAULT_CAMERA_CONFIG,
-        reward_dist_weight_A: float = 100,
+        reward_dist_weight_A: float = 1,
         reward_control_weight_A: float = 1,
         reward_dist_weight_B: float = 1,
         reward_control_weight_B: float = 1,
@@ -65,16 +65,22 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             **kwargs,
             )
+        # Rescale actions
+        self.original_low = np.array([-1.6, -1.6])  # Torques - This has to agree with the xml model!
+        self.original_high = np.array([1.6, 1.6])
+
+        self.action_space = spaces.Box(low=-1.0, high=1.0, shape=self.original_low.shape, dtype=np.float32)
 
 
     def step(self, action):
-        
-        self.do_simulation(action, self.frame_skip)
+        real_action = self.original_low + (action + 1.0) * 0.5 * (self.original_high - self.original_low)
+
+        self.do_simulation(real_action, self.frame_skip)
         
         observation=self._get_obs()
         
         distance=np.linalg.norm((self.get_body_com("end_effector")-self.get_body_com("target"))[:2])
-        energy=self.model.opt.timestep * (abs(self.data.qvel[0] * action[0]) + abs(self.data.qvel[2] * action[1]))
+        energy=self.model.opt.timestep * (abs(self.data.qvel[0] * real_action[0]) + abs(self.data.qvel[2] * real_action[1]))
         
         reward_dist = self._reward_dist_weight_A*np.exp(-self._reward_dist_weight_B*distance)
         reward_ctrl = self._reward_control_weight_A*np.exp(-self._reward_control_weight_B*energy)
@@ -86,7 +92,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             "energy": energy,
         }
         
-        if self.render_mode=="human":
+        if (self.render_mode=="human"):
             self.render()
 
         return (

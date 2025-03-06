@@ -1,9 +1,12 @@
 import gymnasium as gym
 import five_bar
 from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
+from stable_baselines3.common.env_checker import check_env
+
 import os
 import sys
-    
+import matplotlib.pyplot as plt
+import numpy as np
 def model_load(env,algo_name):
     
     path=os.path.join(os.path.dirname(__file__), 'training_results\\'+algo_name)
@@ -31,17 +34,58 @@ if __name__ == "__main__":
         algo_name = sys.argv[1]
         
         env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
-        
+        print("Checking Env...")
+        check_env(env)
+        print("Env check finished")
         model=model_load(env,algo_name)
         
         vec_env = model.get_env()
         
         obs = vec_env.reset()
-        for i in range(10000):
-            action, _state = model.predict(obs, deterministic=True)
+        energies, distances = [], []
+        current_energy, current_distance = [], []
+
+        episodes = 0
+        while episodes < 1000:
+            action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
-            vec_env.render("human")
-            # VecEnv resets automatically
-            # if done:
-            #   obs = vec_env.reset()
-        
+            #vec_env.render("human")
+
+            current_energy.append(info[0]["energy"])
+            current_distance.append(info[0]["distance"])
+
+            if done:
+                episodes += 1
+                energies.append(current_energy[:])
+                distances.append(current_distance[:])
+                current_energy.clear()
+                current_distance.clear()
+
+        # Pad series for averaging
+        max_length = max(map(len, energies))
+        pad = lambda series: np.array([np.pad(s, (0, max_length - len(s)), constant_values=np.nan) for s in series])
+        energy_arr, distance_arr = pad(energies), pad(distances)
+
+        # Compute averages
+        avg_energy, avg_distance = np.nanmean(energy_arr, axis=0), np.nanmean(distance_arr, axis=0)
+        print(f"Total Energy: {np.nansum(avg_energy):.2f}, Last Distance: {avg_distance[-1]:.2f}")
+
+        # Plot all subplots
+        fig, axes = plt.subplots(4, 1, figsize=(10, 12))
+        titles = ["Energy Series", "Distance Series", "Average Energy", "Average Distance"]
+        data = [energies, distances, [avg_energy], [avg_distance]]
+        colors = [None, None, ["red"], ["blue"]]
+
+        for ax, title, series, color in zip(axes, titles, data, colors):
+            for i, s in enumerate(series):
+                if color:  # Apply color only when it's specified
+                    ax.plot(s, color=color[0], label="Average")
+                    ax.legend()
+                else:
+                    ax.plot(s)
+            ax.set(title=title, xlabel="Time Step")
+            
+            ax.grid(True)
+
+        plt.tight_layout()
+        plt.show()
