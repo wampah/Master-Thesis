@@ -34,7 +34,7 @@ def train(env,algo_name,params,timesteps):
     model.learn(total_timesteps=timesteps, progress_bar=True)
     model.save(path)
 
-    del model
+    return model
     
 def model_load(env,algo_name,params):
     
@@ -57,7 +57,7 @@ def objective(trial):
     }
 
     # Create environment with sampled parameters
-    env = gym.make("five_bar-v0", render_mode=None, camera_name="free",
+    env = gym.make("five_bar-v0", render_mode=None, 
                    reward_dist_weight_A=params["diA"],
                    reward_dist_weight_B=params["diB"],
                    reward_control_weight_A=params["enA"],
