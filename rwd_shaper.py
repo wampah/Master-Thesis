@@ -65,6 +65,8 @@ def objective(trial):
     
     model = train(env, algo_name, params, timesteps=2_000_000)
 
+    print("-"*50,"Evaluating Agent","-"*50)
+    
     energies, distances = [], []
     current_energy, current_distance = [], []
     
@@ -95,7 +97,7 @@ def objective(trial):
     avg_energy, avg_distance = np.nanmean(energy_arr, axis=0), np.nanmean(distance_arr, axis=0)
     total_energy=np.nansum(avg_energy)
     precision=avg_distance[-1]
-
+    print("-"*50,"Done Evaluating Agent","-"*50)
     # if precision>0.05:
     #     target=100
     # else:
@@ -106,7 +108,7 @@ def objective(trial):
 
 if __name__ == "__main__":
     study = optuna.create_study(direction="minimize")  # Maximize the mean reward
-    study.optimize(objective, n_trials=20)  # Run 20 trials
+    study.optimize(objective, n_trials=20,n_jobs=4)  # Run 20 trials
 
     print("Best Parameters:", study.best_params)
 
