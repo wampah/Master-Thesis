@@ -8,7 +8,9 @@ import pickle
 
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 TRAIN_DIR=os.path.join(os.path.dirname(__file__), 'trained_agents')
-STUDY_DIR=os.path.join(os.path.dirname(__file__), 'optuna_studies')
+STUDY_PATH=os.path.join(os.path.dirname(__file__), 'optuna_studies',"optuna_study.db")
+STORAGE_URL = f"sqlite:///{STUDY_PATH}"
+
 
 algo_dict = {
         "ddpg": DDPG,
@@ -63,7 +65,7 @@ def objective(trial):
                    reward_control_weight_A=params["enA"],
                    reward_control_weight_B=params["enB"])
     
-    model = train(env, algo_name, params, timesteps=2_000_000)
+    model = train(env, algo_name, params, timesteps=1_000_000)
 
     print("-"*50,"Evaluating Agent","-"*50)
     
@@ -75,7 +77,7 @@ def objective(trial):
     obs = vec_env.reset()
 
     episodes = 0
-    while episodes < 1000:
+    while episodes < 10000:
         action, _ = model.predict(obs, deterministic=True)
         obs, reward, done, info = vec_env.step(action)
         #vec_env.render("human")
@@ -102,18 +104,21 @@ def objective(trial):
     #     target=100
     # else:
     #     
-    target=total_energy+precision*1000
-
-    return target
+    return total_energy,precision
 
 if __name__ == "__main__":
-    study = optuna.create_study(direction="minimize")  # Maximize the mean reward
-    study.optimize(objective, n_trials=20,n_jobs=4)  # Run 20 trials
+    study = optuna.create_study(
+        study_name="Reward Shaping Study",
+        storage=STORAGE_URL,
+        directions=["minimize", "minimize"],  # Multi-objective optimization
+        load_if_exists=True,  # Load the study if it already exists
+        )  # Maximize the mean reward
+    study.optimize(objective, n_trials=20)  # Run 20 trials
 
-    print("Best Parameters:", study.best_params)
-
-    with open(os.path.join(STUDY_DIR,"optuna_study1.pkl"), "wb") as f:
-        pickle.dump(study, f)
+    # Get Pareto front solutions
+    pareto_solutions = study.best_trials
+    for trial in pareto_solutions:
+        print(trial.values, trial.params)
     
     
     
