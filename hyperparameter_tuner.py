@@ -4,6 +4,7 @@ from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
 import os
 import sys
 from stable_baselines3.common.env_checker import check_env
+import optuna
 
 
 
@@ -45,6 +46,27 @@ def model_load(env,algo_name,params):
 
     return algo_dict[algo_name.lower()].load(path, env=env)
 
+def objective(trial,algo_name):
+    """Objective function for Optuna hyperparameter tuning."""
+
+    # Sample parameters
+    params = {
+        "enA": trial.suggest_float("enA", 0.1, 10.0),
+        "diA": trial.suggest_float("diA", 0.1, 10.0),
+        "enB": trial.suggest_float("enB", 0.1, 10.0),
+        "diB": trial.suggest_float("diB", 0.1, 10.0),
+    }
+
+    # Create environment with sampled parameters
+    env = gym.make("five_bar-v0", render_mode=None, camera_name="free",
+                   reward_dist_weight_A=params["diA"],
+                   reward_dist_weight_B=params["diB"],
+                   reward_control_weight_A=params["enA"],
+                   reward_control_weight_B=params["enB"])
+    
+
+
+    
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python train.py <algorithm>")
