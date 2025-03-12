@@ -6,9 +6,35 @@ import optuna
 import numpy as np
 import pickle
 
+from stable_baselines3.common.callbacks import BaseCallback
+from tqdm import tqdm
+
 LOG_DIR = os.path.join(os.path.dirname(__file__), "logs")
 TRAIN_DIR=os.path.join(os.path.dirname(__file__), 'trained_agents')
-STUDY_PATH=os.path.join(os.path.dirname(__file__), 'optuna_studies',"optuna_study.db")
+STUDY_DIR=os.path.join(os.path.dirname(__file__), 'optuna_studies')
+
+folders=[LOG_DIR,TRAIN_DIR,STUDY_DIR]
+
+class ProgressBarCallback(BaseCallback):
+    def __init__(self, total_timesteps):
+        super().__init__()
+        self.total_timesteps = total_timesteps
+        self.pbar = None
+
+    def _on_training_start(self):
+        self.pbar = tqdm(total=self.total_timesteps)
+
+    def _on_step(self):
+        self.pbar.update(1)
+        return True
+
+    def _on_training_end(self):
+        self.pbar.close()
+
+for folder in folders:
+    os.makedirs(folder, exist_ok=True)
+
+STUDY_PATH=os.path.join(STUDY_DIR,"optuna_study.db")
 STORAGE_URL = f"sqlite:///{STUDY_PATH}"
 
 
@@ -32,8 +58,9 @@ def train(env,algo_name,params,timesteps):
     if algo_name.lower() not in algo_dict:
         raise ValueError(f"Algorithm {algo_name} not recognized.")
 
-    model = algo_dict[algo_name.lower()]('MlpPolicy', env, verbose=1, device="cuda", tensorboard_log=logpath)
-    model.learn(total_timesteps=timesteps, progress_bar=True)
+    model = algo_dict[algo_name.lower()]('MlpPolicy', env, verbose=0, device="cuda", tensorboard_log=logpath)
+    callback = ProgressBarCallback(total_timesteps=timesteps)
+    model.learn(total_timesteps=timesteps, callback=callback)
     model.save(path)
 
     return model
@@ -113,7 +140,7 @@ if __name__ == "__main__":
         directions=["minimize", "minimize"],  # Multi-objective optimization
         load_if_exists=True,  # Load the study if it already exists
         )  # Maximize the mean reward
-    study.optimize(objective, n_trials=20)  # Run 20 trials
+    study.optimize(objective, n_trials=30,n_jobs=5)  # Run 20 trials
 
     # Get Pareto front solutions
     pareto_solutions = study.best_trials

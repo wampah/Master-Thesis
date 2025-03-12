@@ -53,7 +53,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         self._reward_dist_weight_B = reward_dist_weight_B
         self._reward_control_weight_B = reward_control_weight_B
         
-        print(self.initial_pts.head())
+        self.initial_pts=pd.read_parquet(DATA_PATH)
         
         observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float64)
 
