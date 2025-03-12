@@ -13,8 +13,8 @@ DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 0
     }
 
-FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_bar.xml")
-DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dynamic analysis\\data\\initial_pts.parquet")
+FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets","5_bar.xml")
+DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dynamic analysis","data","initial_pts.parquet")
 
 class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
     metadata = {
@@ -53,7 +53,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         self._reward_dist_weight_B = reward_dist_weight_B
         self._reward_control_weight_B = reward_control_weight_B
         
-        self.initial_pts=pd.read_parquet(DATA_PATH)
+        print(self.initial_pts.head())
         
         observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float64)
 
