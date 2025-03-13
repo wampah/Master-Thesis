@@ -7,9 +7,11 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
-def model_load(env,algo_name):
+def model_load(env,model_name):
     
-    path=os.path.join(os.path.dirname(__file__), 'training_results\\'+algo_name)
+    algo_name=model_name.split("_")[0]
+        
+    path=os.path.join(os.path.dirname(__file__), 'trained_agents',model_name,"agent.zip")
     
     if algo_name.lower() == 'ddpg':
         model = DDPG.load(path, env=env)
@@ -31,13 +33,13 @@ if __name__ == "__main__":
         print("Usage: python train.py <algorithm>")
         print("Available algorithms: 'ddpg', 'ppo', 'a2c', 'sac' or td3.")
     else:
-        algo_name = sys.argv[1]
+        model_name = sys.argv[1]
         
-        env = gym.make("five_bar-v0", render_mode="rgb_array", camera_name="free")
+        env = gym.make("five_bar-v0", render_mode="human", camera_name="free")
         print("Checking Env...")
         check_env(env)
         print("Env check finished")
-        model=model_load(env,algo_name)
+        model=model_load(env,model_name)
         
         vec_env = model.get_env()
         
@@ -49,7 +51,6 @@ if __name__ == "__main__":
         while episodes < 1000:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
-            #vec_env.render("human")
 
             current_energy.append(info[0]["energy"])
             current_distance.append(info[0]["distance"])

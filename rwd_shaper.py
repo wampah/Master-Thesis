@@ -127,10 +127,7 @@ def objective(trial):
     total_energy=np.nansum(avg_energy)
     precision=avg_distance[-1]
     print("-"*50,"Done Evaluating Agent","-"*50)
-    # if precision>0.05:
-    #     target=100
-    # else:
-    #     
+ 
     return total_energy,precision
 
 if __name__ == "__main__":
