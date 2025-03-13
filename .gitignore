@@ -402,3 +402,9 @@ mthesis_env/
 
 #egg
 *.egg-info
+
+trained_agents/
+
+optuna_studies/
+
+logs/
