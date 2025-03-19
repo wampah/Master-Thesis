@@ -92,7 +92,7 @@ def objective(trial):
                    reward_control_weight_A=params["enA"],
                    reward_control_weight_B=params["enB"])
     
-    model = train(env, algo_name, params, timesteps=1_000_000)
+    model = train(env, algo_name, params, timesteps=3_000_000)
 
     print("-"*50,"Evaluating Agent","-"*50)
     
