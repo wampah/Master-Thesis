@@ -17,7 +17,7 @@ interp_dq2 = interp1d(df['time'], df['dq2'], kind='linear', fill_value='extrapol
 
 q1_0=df.q1[0]
 q2_0=df.q2[0]
-xml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_barras.xml") #xml file (assumes this is in the same folder as this file)
+xml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_bar.xml") #xml file (assumes this is in the same folder as this file)
 simend = 4 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
@@ -32,6 +32,11 @@ lasty = 0
 def init_controller(model,data):
     #initialize the controller here. This function is called once, in the beginning
     pass
+
+ctrl1_values = []
+ctrl2_values = []
+ctrl_time = []
+
 
 def controller(model, data):
     #put the controller here. This function is called inside the simulation.
@@ -56,8 +61,11 @@ def controller(model, data):
         data.ctrl[0] = -10*(q1-(q1_0))-0.5*dq1
         data.ctrl[1] = -10*(q2-(q2_0))-0.5*dq2
     else:
-        data.ctrl[0] = -0.01*(q1-(interp_q1(data.time-2)))-0.5*(dq1-interp_dq1(data.time-2))
-        data.ctrl[1] = -0.01*(q2-(interp_q2(data.time-2)))-0.5*(dq2-interp_dq2(data.time-2))
+        data.ctrl[0] = -0.01*(q1-(interp_q1(data.time-2)))-0.2*(dq1-interp_dq1(data.time-2))
+        data.ctrl[1] = -0.01*(q2-(interp_q2(data.time-2)))-0.2*(dq2-interp_dq2(data.time-2))
+        ctrl1_values.append(data.ctrl[0])
+        ctrl2_values.append(data.ctrl[1])
+        ctrl_time.append(data.time)
         
 
 
@@ -237,7 +245,7 @@ while not glfw.window_should_close(window):
 glfw.terminate()
 
 # Creating subplots
-fig, axis = plt.subplots(4, 1, figsize=(8, 12))
+fig, axis = plt.subplots(5, 1, figsize=(8, 12))
 
 time_obj=np.linspace(0,2,20)
 
@@ -276,6 +284,15 @@ axis[3].set_title('Effector Position')
 axis[3].set_xlabel('Time')
 axis[3].set_ylabel('Position')
 axis[3].legend()
+
+# Plotting accelerations
+axis[4].plot(ctrl_time, ctrl1_values, 'r-',label='Motor 1')
+axis[4].plot(ctrl_time, ctrl2_values, 'b-',label='Motor 2')
+axis[4].set_title('Actuator Torque')
+axis[4].set_xlabel('Time')
+axis[4].set_ylabel('Torque')
+axis[4].legend()
+axis[4].set_ylim(-0.02, 0.001)
 
 # Adjusting layout and showing plot
 plt.tight_layout()
