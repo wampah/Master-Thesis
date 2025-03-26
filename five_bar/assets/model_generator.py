@@ -106,10 +106,10 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
 		<framelinvel objtype="body" objname="end_effector"/>
 	</sensor>
     <actuator>
-        <position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="10" kv="1"/>
-        <position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="10" kv="1"/>
-        <!motor joint="joint1" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
-        <!motor joint="joint2" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
+        <!position joint="joint1" ctrllimited="true"  ctrlrange="0 3.14" kp="10" kv="1"/>
+        <!position joint="joint2" ctrllimited="true"  ctrlrange="-3.14 0" kp="10" kv="1"/>
+        <motor joint="joint1" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
+        <motor joint="joint2" ctrllimited="true"  ctrlrange="-{max_torque} {max_torque}"/>
     </actuator>
     <asset>
         <mesh name="Proximal_Link_1" file="Proximal Link 1.stl" scale="0.001 0.001 0.001"/>
