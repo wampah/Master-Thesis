@@ -408,3 +408,5 @@ trained_agents/
 optuna_studies/
 
 logs/
+
+MUJOCO_LOG.TXT
