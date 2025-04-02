@@ -196,6 +196,7 @@ reset_button.pack(pady=10)
 # Serial Reading Thread
 def read_data():
     """Reads and processes serial messages."""
+    
     while True:
         try:
             if ser.in_waiting > 0:
@@ -220,8 +221,10 @@ def read_data():
                         if data_bytes[0] == 0x9C:
                             
                             process_9c_message(data_bytes, motor_id)
+
                         elif data_bytes[0] == 0x9a:
                             process_9a_message(data_bytes, motor_id)
+
                         else:
                             print(line)
         except serial.SerialException as e:
@@ -255,10 +258,6 @@ def process_9a_message(data_bytes, motor_id):
 
     # Update GUI
     root.after(0, update_motor_data_9a, motor_id, voltage,brake)
-
-# Start serial reading thread
-read_thread = threading.Thread(target=read_data, daemon=True)
-read_thread.start()
 
 # Periodic message sending thread
 def send_periodic_message():
@@ -315,6 +314,9 @@ def send_periodic_message():
         packet = bytes([START_BYTE] + message1 + message2 + [STOP_BYTE])
         ser.write(packet)
 
+# Start serial reading thread
+read_thread = threading.Thread(target=read_data, daemon=True)
+read_thread.start()
 
 # Start periodic sending thread
 send_thread = threading.Thread(target=send_periodic_message, daemon=True)

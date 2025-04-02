@@ -16,10 +16,8 @@ void setup() {
   Serial.begin(115200);
   while (!Serial);
 
-  if (CAN.begin(MCP_ANY, CAN_1000KBPS, MCP_8MHZ) == CAN_OK) 
-    Serial.println("MCP2515 Initialized Successfully!");
-  else {
-    Serial.println("Error Initializing MCP2515...");
+  if (CAN.begin(MCP_ANY, CAN_1000KBPS, MCP_8MHZ) != CAN_OK) {
+    Serial.println("Error: Initializing MCP2515...");
     while (1);
   }
 
@@ -38,16 +36,12 @@ void loop() {
 
       if (stopByte == STOP_BYTE) {
         // Send First Message
-        if (CAN.sendMsgBuf(0x141, 0, BUFFER_SIZE, receivedData1) == CAN_OK)
-          Serial.println("Motor 1 Command Sent Successfully!");
-        else
-          Serial.println("Error Sending Motor 1 Command...");
+        if (CAN.sendMsgBuf(0x141, 0, BUFFER_SIZE, receivedData1) != CAN_OK)
+          Serial.println("Error: Sending Motor 1 Command...");
 
         // Send Second Message
-        if (CAN.sendMsgBuf(0x142, 0, BUFFER_SIZE, receivedData2) == CAN_OK)
-          Serial.println("Motor 2 Command Sent Successfully!");
-        else
-          Serial.println("Error Sending Motor 2 Command...");
+        if (CAN.sendMsgBuf(0x142, 0, BUFFER_SIZE, receivedData2) != CAN_OK)
+          Serial.println("Error: Sending Motor 2 Command...");
       }
     }
   }
@@ -59,7 +53,7 @@ void loop() {
     byte rxBuf[BUFFER_SIZE];
 
     CAN.readMsgBuf(&rxId, &len, rxBuf);
-    
+
     Serial.print((rxId & 0x80000000) ? "Extended ID: 0x" : "Standard ID: 0x");
     Serial.print(rxId & 0x1FFFFFFF, HEX);
     Serial.print(" DLC: ");
