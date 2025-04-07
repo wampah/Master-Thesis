@@ -36,7 +36,7 @@ class five_bar:
         
         self.control_modes=["speed","position","torque"]
         
-        self.control_mode=self.control_modes[0]
+        self.control_mode=self.control_modes[2]
         
         self.pos_max_speed=pos_max_speed
         
