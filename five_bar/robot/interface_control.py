@@ -137,7 +137,7 @@ def update_values():
             (setpoint2 >> 24) & 0xFF
         ]
     elif mode.get() == "position":
-        max_speed = 5000000
+        max_speed = 250
         message1 = [
             0xA4, 
             0x00, 

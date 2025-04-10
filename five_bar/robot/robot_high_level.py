@@ -1,15 +1,51 @@
 from five_bar.five_bar import five_bar
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from collections import deque
 import time
 import numpy as np
 
-robot=five_bar(SERIAL_PORT="COM15",pos_max_speed=int(5e6))
+# === Initialize robot ===
+robot = five_bar(SERIAL_PORT="COM15", pos_max_speed=int(5e6))
+robot.change_mode("torque")
 
-robot.begin() # Default control mode is torque
+# === Parameters ===
+max_len = 100  # Rolling window size (number of data points)
+start_time = time.time()
 
-robot.change_mode("position")
+# === Data buffers ===
+timestamps = deque([0]*max_len, maxlen=max_len)
+angle1 = deque([0]*max_len, maxlen=max_len)
+angle2 = deque([0]*max_len, maxlen=max_len)
 
-while True:
-    robot.set_target(360*np.sin(time.time()),360*np.sin(time.time())) #Set targets
-    info = robot.get_motors_data()
-    print(info)
-    time.sleep(0.1) 
+# === Plot setup ===
+fig, ax = plt.subplots()
+line1, = ax.plot([], [], label='Motor 1')
+line2, = ax.plot([], [], label='Motor 2')
+
+ax.set_ylim(-180, 180)  # Adjust based on your robot's angle range
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Angle (deg)")
+ax.legend()
+plt.title("Live Motor Angles")
+
+# === Update function for animation ===
+def update(frame):
+    current_time = time.time() - start_time
+    angles = robot.get_motors_data()["angle"]
+
+    timestamps.append(current_time)
+    angle1.append(angles[0])
+    angle2.append(angles[1])
+
+    line1.set_data(timestamps, angle1)
+    line2.set_data(timestamps, angle2)
+
+    ax.set_xlim(max(0, timestamps[0]), timestamps[-1] + 0.1)
+    return line1, line2
+
+# === Animate ===
+ani = animation.FuncAnimation(fig, update, interval=100)  # 100ms = 0.1s
+
+plt.tight_layout()
+plt.show()
