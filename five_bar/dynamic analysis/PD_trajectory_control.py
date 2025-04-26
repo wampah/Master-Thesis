@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.interpolate import interp1d
 
-df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'data/trajectory_data.parquet'))
+df = pd.read_parquet(os.path.join(os.path.dirname(__file__), 'data','trajectory_data.parquet'))
 
 interp_q1 = interp1d(df['time'], df['q1'], kind='linear', fill_value='extrapolate')
 interp_q2 = interp1d(df['time'], df['q2'], kind='linear', fill_value='extrapolate')
@@ -17,7 +17,7 @@ interp_dq2 = interp1d(df['time'], df['dq2'], kind='linear', fill_value='extrapol
 
 q1_0=df.q1[0]
 q2_0=df.q2[0]
-xml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets\\5_bar.xml") #xml file (assumes this is in the same folder as this file)
+xml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets","5_bar_realistic.xml") #xml file (assumes this is in the same folder as this file)
 simend = 4 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
                         #this is useful for initializing view of the model)
@@ -146,9 +146,14 @@ model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
 data = mj.MjData(model)                # MuJoCo data
 cam = mj.MjvCamera()                        # Abstract camera
 opt = mj.MjvOption()                        # visualization options
+for i in range(model.nbody):
+    name = mj.mj_id2name(model, mj.mjtObj.mjOBJ_BODY, i)
+    mass = model.body_mass[i]
+    inertia = model.body_inertia[i]  # (ixx, iyy, izz)
 
-print([model.geom(i).name for i in range(model.ngeom)])
-print(data.qpos)
+    print(f"Body {i} - Name: {name}")
+    print(f"    Mass: {mass}")
+    print(f"    Inertia (Ixx, Iyy, Izz): {inertia}")
 
 # Init GLFW, create window, make OpenGL context current, request v-sync
 glfw.init()
