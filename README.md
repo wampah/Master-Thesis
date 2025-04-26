@@ -8,7 +8,7 @@ Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Est
 - MATLAB
 
 ## Prerequsitos
-- Python 3.8
+- Python 3.12
 - pip
 - virtualenv
 
@@ -31,7 +31,7 @@ Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Est
     Crea un entorno virtual para manejar las dependencias del proyecto de manera aislada:
 
     ```bash
-    virtualenv mthesis_env --python=python3.8
+    virtualenv mthesis_env --python=python3.12
     ```
 
     Activa el entorno virtual:
