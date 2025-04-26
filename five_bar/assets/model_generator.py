@@ -1,10 +1,11 @@
 import os
 import numpy as np
 
-def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0):
+def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0,
+                        inertia_p1,inertia_p2,inertia_d1,inertia_d2,mass_p1,mass_p2,mass_d1,mass_d2,damping_bp1,damping_bp2,damping_p1d1,damping_p2d2):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
-    <compiler angle="degree" inertiafromgeom="true"/>
+    <compiler angle="degree"/>
     <option gravity="0 0 -9.81" integrator="RK4" timestep="{timestep}"/>
     <asset>
         <texture name="grid" type="2d" builtin="checker" rgb1=".1 .2 .3" rgb2=".2 .3 .4" width="300" height="300"/>
@@ -16,22 +17,26 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
         <geom name="worldbody" size="1 1 .01" pos="0 0 -.2" type="plane" material="grid"/>
         <body name="base" pos="0 0 0">
             <body name="proximal1" pos="{o1x} {o1y} {1.5*link_height+1.5*link_separation}" euler="0 0 {np.rad2deg(q0[0])}">
-                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="0" stiffness="0" ref="{np.rad2deg(q0[0])}"/>
-                <geom name="proximal1" type="box" size="{(L_p1)/2} {link_width/2} {link_height/2}" pos="{L_p1/2} 0 0" rgba="1 0 0 1" density="2700"/>
+                <inertial pos='0 0 0' mass='{mass_p1}' diaginertia='{inertia_p1} {inertia_p1} {inertia_p1}'/>
+                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="{damping_bp1}" stiffness="0" ref="{np.rad2deg(q0[0])}"/>
+                <geom name="proximal1" type="box" size="{(L_p1)/2} {link_width/2} {link_height/2}" pos="{L_p1/2} 0 0" rgba="1 0 0 1"/>
                 <body name="distal1" pos="{L_p1} 0 {-link_height-link_separation}" euler="0 0 {np.rad2deg(q0[1]-q0[0])}">
-                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0" ref="{np.rad2deg(q0[1]-q0[0])}"/>
-                    <geom name="distal1" type="box" size="{L_d1/2} {link_width/2} {link_height/2}" pos="{L_d1/2} 0 0" rgba="0 1 0 1" density="2700"/>
+                    <inertial pos='0 0 0' mass='{mass_d1}' diaginertia='{inertia_d1} {inertia_d1} {inertia_d1}'/>
+                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p1d1}" stiffness="0" ref="{np.rad2deg(q0[1]-q0[0])}"/>
+                    <geom name="distal1" type="box" size="{L_d1/2} {link_width/2} {link_height/2}" pos="{L_d1/2} 0 0" rgba="0 1 0 1"/>
                     <body name="end_effector" pos="{L_d1} 0 0">
-					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/>
+					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".001" type="sphere"/>
 				    </body>
                 </body>
             </body>
             <body name="proximal2" pos="{o2x} {o2y} {-1.5*link_height-1.5*link_separation}" euler="0 0 {np.rad2deg(q0[3])}">
-                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0"  ref="{np.rad2deg(q0[3])}"/>
-                <geom name="proximal2" type="box" size="{L_p2/2} {(link_width)/2} {link_height/2}" pos="{-L_p2/2} 0 0" rgba="1 0 0 1" density="2700"/>
+                <inertial pos='0 0 0' mass='{mass_p2}' diaginertia='{inertia_p2} {inertia_p2} {inertia_p2}'/>
+                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_bp2}" stiffness="0"  ref="{np.rad2deg(q0[3])}"/>
+                <geom name="proximal2" type="box" size="{L_p2/2} {(link_width)/2} {link_height/2}" pos="{-L_p2/2} 0 0" rgba="1 0 0 1"/>
                 <body name="distal2" pos="{-L_p2} 0 {link_height+link_separation}" euler="0 0 {np.rad2deg(q0[2]-q0[3])}">
-                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
-                    <geom name="distal2" type="box" size="{L_d2/2} {link_width/2} {link_height/2}" pos="{-L_d1/2} 0 0" rgba="0 1 0 1" density="2700"/>
+                    <inertial pos='0 0 0' mass='{mass_d2}' diaginertia='{inertia_d2} {inertia_d2} {inertia_d2}'/>
+                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p2d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
+                    <geom name="distal2" type="box" size="{L_d2/2} {link_width/2} {link_height/2}" pos="{-L_d2/2} 0 0" rgba="0 1 0 1"/>
                 </body>
             </body>
         </body>
@@ -58,10 +63,11 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
 """
     return xml_template
 
-def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0):
+def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0,
+                                  inertia_p1,inertia_p2,inertia_d1,inertia_d2,mass_p1,mass_p2,mass_d1,mass_d2,damping_bp1,damping_bp2,damping_p1d1,damping_p2d2):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
-    <compiler meshdir="./mesh" angle="degree" inertiafromgeom="true"/>
+    <compiler meshdir="./mesh" angle="degree"/>
     <option gravity="0 0 -9.81" integrator="RK4" timestep="{timestep}"/>
     <asset>
         <texture name="grid" type="2d" builtin="checker" rgb1=".1 .2 .3" rgb2=".2 .3 .4" width="300" height="300"/>
@@ -73,22 +79,26 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
         <geom name="worldbody" size="1 1 .01" pos="0 0 -.2" type="plane" material="grid"/>
         <body name="base" pos="0 0 0">
             <body name="proximal1" pos="{o1x} {o1y} {1.5*link_height+1.5*link_separation}" euler="0 0 {np.rad2deg(q0[0])}">
-                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="0" stiffness="0" ref="{np.rad2deg(q0[0])}"/>
-                <geom type="mesh" mesh="Proximal_Link_1" density="2700" condim="1" material="aluminum_material"/>
+                <inertial pos='0 0 0' mass='{mass_p1}' diaginertia='{inertia_p1} {inertia_p1} {inertia_p1}'/>
+                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="{damping_bp1}" stiffness="0" ref="{np.rad2deg(q0[0])}"/>
+                <geom name="proximal1" type="mesh" mesh="Proximal_Link_1" condim="1" material="aluminum_material"/>
                 <body name="distal1" pos="{L_p1} 0 {-link_height-link_separation}" euler="0 0 {np.rad2deg(q0[1]-q0[0])}">
-                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0" ref="{np.rad2deg(q0[1]-q0[0])}"/>
-                    <geom type="mesh" mesh="Distal_Link_1" density="2700" condim="1" material="aluminum_material"/>
+                    <inertial pos='0 0 0' mass='{mass_d1}' diaginertia='{inertia_d1} {inertia_d1} {inertia_d1}'/>
+                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p1d1}" stiffness="0" ref="{np.rad2deg(q0[1]-q0[0])}"/>
+                    <geom name="distal1" type="mesh" mesh="Distal_Link_1" condim="1" material="aluminum_material"/>
                     <body name="end_effector" pos="{L_d1} 0 0">
-					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".01" type="sphere"/>
+					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".001" type="sphere"/>
 				    </body>
                 </body>
             </body>
             <body name="proximal2" pos="{o2x} {o2y} {-1.5*link_height-1.5*link_separation}" euler="0 0 {np.rad2deg(q0[3])}">
-                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0"  ref="{np.rad2deg(q0[3])}"/>
-                <geom type="mesh" mesh="Proximal_Link_2" density="2700" condim="1" material="aluminum_material"/>
+                <inertial pos='0 0 0' mass='{mass_p2}' diaginertia='{inertia_p2} {inertia_p2} {inertia_p2}'/>
+                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_bp2}" stiffness="0"  ref="{np.rad2deg(q0[3])}"/>
+                <geom name="proximal2" type="mesh" mesh="Proximal_Link_2" condim="1" material="aluminum_material"/>
                 <body name="distal2" pos="{-L_p2} 0 {link_height+link_separation}" euler="0 0 {np.rad2deg(q0[2]-q0[3])}">
-                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
-                    <geom type="mesh" mesh="Distal_Link_2" density="2700" condim="1" material="aluminum_material"/>
+                    <inertial pos='0 0 0' mass='{mass_d2}' diaginertia='{inertia_d2} {inertia_d2} {inertia_d2}'/>
+                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p2d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
+                    <geom name="distal2" type="mesh" mesh="Distal_Link_2" condim="1" material="aluminum_material"/>
                 </body>
             </body>
         </body>
@@ -137,19 +147,33 @@ L_p2=0.2*scale
 L_d1=0.4*scale
 L_d2=0.4*scale
 link_width=0.02
-link_height=0.025
+link_height=0.026
 link_separation=0.003
 max_torque=1.6
+
 q0=[2.356194490192345,
     0.999107158546108,
     -0.999107158546108,
     -2.356194490192345]
 
+inertia_p1=0.00130446
+inertia_p2=inertia_p1
+inertia_d1=0.00417696 
+inertia_d2=inertia_d1
 
+mass_p1=0.65639730
+mass_p2=mass_p1
+mass_d1=0.25965946
+mass_d2=mass_d1
 
-xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0)
+damping_bp1=0
+damping_bp2=0
+damping_p1d1=0
+damping_p2d2=0
 
-xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0)
+xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0,inertia_p1,inertia_p2,inertia_d1,inertia_d2,mass_p1,mass_p2,mass_d1,mass_d2,damping_bp1,damping_bp2,damping_p1d1,damping_p2d2)
+
+xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,max_torque,q0,inertia_p1,inertia_p2,inertia_d1,inertia_d2,mass_p1,mass_p2,mass_d1,mass_d2,damping_bp1,damping_bp2,damping_p1d1,damping_p2d2)
 
 # Save to a file
 with open(os.path.join(os.path.dirname(__file__), '5_bar.xml'), "w") as f:
