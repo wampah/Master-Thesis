@@ -4,7 +4,7 @@ __credits__ = ["Juan Pablo Reyes"]
 import numpy as np
 import pandas as pd
 import os
-from typing import Dict, Union
+from typing import Dict, Union,Optional
 from gymnasium import utils, error, spaces
 from gymnasium.envs.mujoco import MujocoEnv
 
@@ -34,6 +34,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         reward_control_weight_A: float = 1,
         reward_dist_weight_B: float = 1,
         reward_control_weight_B: float = 1,
+        reset_robot_pos_every_episode: bool =False,
         **kwargs,
     ):
         utils.EzPickle.__init__(
@@ -45,6 +46,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             reward_control_weight_A,
             reward_dist_weight_B,
             reward_control_weight_B,
+            reset_robot_pos_every_episode,
             **kwargs,
         )        
         
@@ -54,6 +56,8 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         self._reward_control_weight_B = reward_control_weight_B
         
         self.initial_pts=pd.read_parquet(DATA_PATH)
+        
+        self.reset_robot_pos_every_episode=reset_robot_pos_every_episode
         
         observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float64)
 
@@ -90,6 +94,7 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         reward_info = {
             "distance": distance,
             "energy": energy,
+            "qpos":self.data.qpos
         }
         
         if (self.render_mode=="human"):
@@ -122,13 +127,29 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         random_effs = self.initial_pts.iloc[random_index2]
 
         self.goal=np.array([random_effs['eff_x'],random_effs["eff_y"]])
-                
-        qpos = np.array([j1,j3,j2,j4,self.goal[0],self.goal[1]])
-
+        
+        if self.reset_robot_pos_every_episode:
+            qpos = np.array([j1,j3,j2,j4,self.goal[0],self.goal[1]])
+        else:
+            qpos = np.array([self.data.qpos[0],self.data.qpos[1],self.data.qpos[2],self.data.qpos[3],self.goal[0],self.goal[1]])
         qvel=np.zeros(self.model.nv)
 
         self.set_state(qpos, qvel)
         return self._get_obs()
+    
+    def reset(
+        self,
+        *,
+        seed: Optional[int] = None,
+        options: Optional[dict] = None,
+    ):
+        
+        ob = self.reset_model()
+        info = self._get_reset_info()
+
+        if self.render_mode == "human":
+            self.render()
+        return ob, info
     
     def _get_obs(self):
         theta=[self.data.qpos[0],self.data.qpos[2]]# 0 and 2 are effectors
