@@ -5,7 +5,7 @@ import pandas as pd
 
 log=[]
 # === Initialize robot ===
-robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
+robot = five_bar(SERIAL_PORT="COM16", max_speed=50)
 
 #robot._write_motor_zero_command()
 

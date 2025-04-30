@@ -225,20 +225,32 @@ class five_bar:
         Returns:
             list: A list containing two control messages (one per motor).
         """
-        target1 = -1*int(self.target[0] / 0.01)
-        target2 = int(self.target[1] / 0.01)
+        
         
         if self.control_mode == self.control_modes[0]:
+            
+            target1 = -1*int(self.target[0] / 0.01)
+            target2 = int(self.target[1] / 0.01)
+            
             message1 = [self.motors_data["motor_ID"][0], 0xA2, 0x00, 0x00, 0x00,
                         target1 & 0xFF, (target1 >> 8) & 0xFF, (target1 >> 16) & 0xFF, (target1 >> 24) & 0xFF]
             message2 = [self.motors_data["motor_ID"][1], 0xA2, 0x00, 0x00, 0x00,
                         target2 & 0xFF, (target2 >> 8) & 0xFF, (target2 >> 16) & 0xFF, (target2 >> 24) & 0xFF]
         elif self.control_mode == self.control_modes[1]:
+            
+            target1 = -1*int(self.target[0] / 0.01)
+            target2 = int(self.target[1] / 0.01)
+            
             message1 = [self.motors_data["motor_ID"][0], 0xA4, 0x00, self.max_speed & 0xFF,
                         (self.max_speed >> 8) & 0xFF, target1 & 0xFF, (target1 >> 8) & 0xFF, (target1 >> 16) & 0xFF, (target1 >> 24) & 0xFF]
             message2 = [self.motors_data["motor_ID"][1], 0xA4, 0x00, self.max_speed & 0xFF,
                         (self.max_speed >> 8) & 0xFF, target2 & 0xFF, (target2 >> 8) & 0xFF, (target2 >> 16) & 0xFF, (target2 >> 24) & 0xFF]
         else:
+            motor_constants = self.motors_data["torque_constant"]
+            
+            target1 = -1*int((self.target[0] / 0.01)/motor_constants[0])
+            target2 = int((self.target[1] / 0.01)/motor_constants[1])
+            
             message1 = [self.motors_data["motor_ID"][0], 0xA1, 0x00, 0x00, 0x00,
                         target1 & 0xFF, (target1 >> 8) & 0xFF, 0x00, 0x00]
             message2 = [self.motors_data["motor_ID"][1], 0xA1, 0x00, 0x00, 0x00,

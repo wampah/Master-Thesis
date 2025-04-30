@@ -55,7 +55,7 @@ while current_series_id<20:
     })
     
     # Print current angles
-    print(", ".join([f"{angle:.2f}" for angle in motor_data["angle"]]))
+    #print(", ".join([f"{angle:.2f}" for angle in motor_data["angle"]]))
     
     # Change target every 2 seconds
     if t_now - t_last_change > 2:
