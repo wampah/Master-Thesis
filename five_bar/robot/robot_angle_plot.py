@@ -6,16 +6,19 @@ import time
 import numpy as np
 
 # === Initialize robot ===
-robot = five_bar(SERIAL_PORT="COM15", max_speed=100)
+robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
 robot.set_control_mode("position")
 
-robot.set_target(45,-135)
+robot.set_target(135,-135)
 robot.start()
 
-vals=[[63.92, -242.82],
-[75, -153],
-[21.31, -105.03],
-[-55, -117.61]]
+vals=[[135,-135],
+[117.91, -217.76],
+[226.68, -93.44],
+[157.75, -92.08],
+[117.11, -198.33],
+[130.25, -125.78],
+[199.07, -195.59]]
 
 # === Parameters ===
 max_len = 100  # Rolling window size (number of data points)
@@ -31,7 +34,7 @@ fig, ax = plt.subplots()
 line1, = ax.plot([], [], label='Motor 1')
 line2, = ax.plot([], [], label='Motor 2')
 
-ax.set_ylim(-1, 1)  # Adjust based on your robot's angle range
+ax.set_ylim(-360, 360)  # Adjust based on your robot's angle range
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Angle (deg)")
 ax.legend()
@@ -52,7 +55,7 @@ def update(frame):
             
             
     current_time = time.time() - start_time
-    angles = robot.get_motors_data()["torque"]
+    angles = robot.get_motors_data()["angle"]
 
     timestamps.append(current_time)
     angle1.append(angles[0])
@@ -65,7 +68,7 @@ def update(frame):
     return line1, line2
 
 # === Animate ===
-ani = animation.FuncAnimation(fig, update, interval=1)  # 100ms = 0.1s
+ani = animation.FuncAnimation(fig, update, interval=10)  # 100ms = 0.1s
 
 plt.tight_layout()
 plt.show()

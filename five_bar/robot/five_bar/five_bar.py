@@ -1,18 +1,17 @@
-from pySerialTransfer import pySerialTransfer as txfer
 import time
+import can
 import threading
 
 class five_bar:
     def __init__(self,
                  SERIAL_PORT="COM1",
-                 BAUD_RATE=115200, 
-                 msg_size=int((8+1)*4), # 8 bytes for msg, 1 for id - times 4 since pytransfer interprets bytes as 4 byte ints
                  torque_constant1=0.45,
                  torque_constant2=0.45,
+                 voltage=24,
                  max_speed=1e3,
                  max_speed_allowed_overshoot=250,
-                 motor1_ID=0x00,
-                 motor2_ID=0x01):
+                 motor1_ID=0x141,
+                 motor2_ID=0x142):
         """
         Initializes the five_bar robot interface.
 
@@ -30,15 +29,13 @@ class five_bar:
         print("\nInitializing Robot...\n")
         
         self.SERIAL_PORT = SERIAL_PORT
-        self.BAUD_RATE = BAUD_RATE
         
         self.motors_data = {
-            "voltage": [0, 0],
+            "voltage": [voltage, voltage],
             "current": [0, 0],
             "speed": [0, 0],
             "angle": [0, 0],
             "temperature": [0, 0],
-            "brake_status": [0, 0],
             "power": [0, 0],
             "torque": [0, 0],
             "torque_constant": [torque_constant1, torque_constant2],
@@ -62,17 +59,19 @@ class five_bar:
         if self.max_speed > 2**16 - 1:
             raise Exception(f"Maximum speed out of range. Value attempted was {self.max_speed} and maximum is {2**16 - 1}")
         
-        print(f"Connecting to Serial Port {self.SERIAL_PORT}...")
+        print(f"Connecting to CAN bus {self.SERIAL_PORT}...")
     
-        self.link = txfer.SerialTransfer(self.SERIAL_PORT, baud=self.BAUD_RATE)
+        self.bus = can.interface.Bus(
+            interface='slcan',
+            channel=self.SERIAL_PORT,  # Serial port
+            bitrate=1000000   # 1 Mbps
+        )
         
-        self.msg_size = msg_size
+        self.buffer=can.BufferedReader()
         
-        self.link.open()
-        
-        time.sleep(2)
-        
-        print(f"Successfully connected to Serial Port {self.SERIAL_PORT}!\n")
+        self.notifier = can.Notifier(self.bus,[self.buffer])
+                        
+        print(f"Successfully connected to CAN bus {self.SERIAL_PORT}!\n")
                 
         self.thread1 = threading.Thread(target=self._read_serial_thread, daemon=True)
         self.thread2 = threading.Thread(target=self._serial_write_thread, daemon=True)
@@ -96,9 +95,9 @@ class five_bar:
             mode (str): Control mode of the motors. Must be one of the valid control modes ('speed', 'position', 'torque').
         """
         if mode in self.control_modes:
-            self.target = [0, 0]
-            self.control_mode = mode
             if self.active:
+                self.target = [0, 0]
+                self.control_mode = mode
                 print(f"Control Mode set to '{self.control_mode}'. Setting targets to [0,0]\n")
         else:
             raise Exception("Error: Mode", mode, "is not a valid mode")
@@ -149,11 +148,9 @@ class five_bar:
         Thread function to continuously send request and control messages over the serial link.
         """
         while True:
-            for msg in self._get_request_messages():
-                self._write_serial(msg)
-                
             for msg in self._get_control_messages():
                 self._write_serial(msg)
+            time.sleep(0.01)
         
     def _write_serial(self, msg):
         """
@@ -163,46 +160,26 @@ class five_bar:
             msg (list): Formatted list representing the message to send.
         """
         try:
-            msg_size = self.link.tx_obj(msg)
-            self.link.send(msg_size)
-        except:
-            import traceback
-            traceback.print_exc()
-            try:
-                self.link.close()
-                self.active = False
-            except:
-                pass
+            send_msg = can.Message(arbitration_id=msg[0],data=msg[1:],is_extended_id=False)
+            self.bus.send(send_msg)       
+        except can.CanError as e:
+            print(f"Failed to send message: {e}")
+
         
     def _read_serial(self):
         """
-        Reads data from the serial link once.
+        Reads data from the CAN device once.
 
         Returns:
             list or None: A list containing the received data if available, otherwise None.
         """
         data = None
         try:
-            if self.link.available():
-                data = self.link.rx_obj(obj_type=list, obj_byte_size=self.msg_size, list_format='i')
-            else:
-                if self.link.status.value < 0:
-                    if self.link.status == txfer.Status.CRC_ERROR:
-                        print('ERROR: CRC_ERROR')
-                    elif self.link.status == txfer.Status.PAYLOAD_ERROR:
-                        print('ERROR: PAYLOAD_ERROR')
-                    elif self.link.status == txfer.Status.STOP_BYTE_ERROR:
-                        print('ERROR: STOP_BYTE_ERROR')
-                    else:
-                        print('ERROR: {}'.format(self.link.status.name)) 
-        except:
-            import traceback
-            traceback.print_exc()
-            try:
-                self.link.close()  
-                self.active = False
-            except:
-                pass
+            received_msg = self.buffer.get_message()
+            if received_msg:
+                data= [received_msg.arbitration_id] + list(received_msg.data)
+        except can.CanError as e:
+                print(f"Failed to recieve message: {e}")
         return data
            
     def _process_data(self, data):
@@ -214,25 +191,23 @@ class five_bar:
         """
         data_bytes = data[1:]
         
-        if data[0] == self.motors_data["motor_ID"][0]:
+        sign_multiplier=1
+        
+        if data[0] == (self.motors_data["motor_ID"][0]+0x100):
             motor_id = 0
-        elif data[0] == self.motors_data["motor_ID"][1]:
+            sign_multiplier=-1
+        elif data[0] == (self.motors_data["motor_ID"][1]+0x100):
             motor_id = 1
+            sign_multiplier=1
         else:
             motor_id = None
         
-        if data_bytes[0] == 0x9C:
-            self.motors_data["temperature"][motor_id] = int.from_bytes(data_bytes[1:2], byteorder="little", signed=True)
-            self.motors_data["current"][motor_id] = int.from_bytes(data_bytes[2:4], byteorder="little", signed=True) * 0.01  # 0.01A/LSB
-            self.motors_data["speed"][motor_id] = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)  # 1dps/LSB
+        if (data_bytes[0] == 0xA1) or (data_bytes[0] == 0xA4) or (data_bytes[0] == 0xA2):
+            self.motors_data["temperature"][motor_id] = int.from_bytes(data_bytes[1:2], byteorder="little", signed=True) #1℃/LSB
+            self.motors_data["current"][motor_id] = int.from_bytes(data_bytes[2:4], byteorder="little", signed=True) * 0.01 *sign_multiplier  # 0.01A/LSB
+            self.motors_data["speed"][motor_id] = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)*sign_multiplier  # 1dps/LSB
             self.motors_data["angle"][motor_id] = int.from_bytes(data_bytes[6:8], byteorder="little", signed=True)  # 1°/LSB
-        elif data_bytes[0] == 0x9A:
-            self.motors_data["brake_status"][motor_id] = int.from_bytes(data_bytes[3:4], byteorder="little", signed=True)   # 1/LSB
-            self.motors_data["voltage"][motor_id] = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True) * 0.1  # 0.1V/LSB
-        elif data_bytes[0] == 0x92:
-            self.motors_data["angle"][motor_id] = int.from_bytes(data_bytes[4:8], byteorder="little", signed=True) * 0.01 # 0.01°/LSB
-        elif (data_bytes[0] == 0xA1) or (data_bytes[0] == 0xA4) or (data_bytes[0] == 0xA2):
-            pass
+            
         else:
             print("Unknown Information Received:", data)
             
@@ -250,7 +225,7 @@ class five_bar:
         Returns:
             list: A list containing two control messages (one per motor).
         """
-        target1 = int(self.target[0] / 0.01)
+        target1 = -1*int(self.target[0] / 0.01)
         target2 = int(self.target[1] / 0.01)
         
         if self.control_mode == self.control_modes[0]:
@@ -270,26 +245,8 @@ class five_bar:
                         target2 & 0xFF, (target2 >> 8) & 0xFF, 0x00, 0x00]
 
         return [message1, message2]
-            
-    def _get_request_messages(self):
-        """
-        Constructs a set of request messages to poll the motor controllers for updated data.
-
-        Returns:
-            list: A list containing request messages for temperature, current, speed, angle, voltage, brake status, and angle update.
-        """
-        messages = [
-            [self.motors_data["motor_ID"][0], 0x9c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            [self.motors_data["motor_ID"][1], 0x9c, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            [self.motors_data["motor_ID"][0], 0x9a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            [self.motors_data["motor_ID"][1], 0x9a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            [self.motors_data["motor_ID"][0], 0x92, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
-            [self.motors_data["motor_ID"][1], 0x92, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-        ]
-        
-        return messages
     
-    def _write_motor_zero_command(self):
+    def write_motor_zero_command(self):
         """
         Sends a command to zero the motor encoders. This function can only be executed when the
         communication threads are not running.

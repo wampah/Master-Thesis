@@ -1,16 +1,12 @@
-import serial
-import time
-import threading
 import tkinter as tk
+import threading
+import time
+from five_bar.five_bar import five_bar
 
-# Configure Serial Port
-SERIAL_PORT = "COM15"  # Change accordingly
-BAUD_RATE = 115200
-START_BYTE = 0xAB
-STOP_BYTE = 0xBA
-
-# Open Serial Connection
-ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+# Initialize the robot
+robot = five_bar(SERIAL_PORT="COM16", max_speed=100)
+robot.set_control_mode("position")  # Default mode
+robot.start()
 
 # GUI Setup
 root = tk.Tk()
@@ -18,7 +14,7 @@ root.title("Motor Control")
 root.geometry("400x450")
 
 # Default mode
-mode = tk.StringVar(value="speed")
+mode = tk.StringVar(value="position")
 
 # Frame for motor data
 data_frame = tk.Frame(root)
@@ -38,8 +34,7 @@ motor1_speed_label = tk.Label(motor1_frame, text="Speed: --°/s")
 motor1_speed_label.pack()
 motor1_angle_label = tk.Label(motor1_frame, text="Angle: --°")
 motor1_angle_label.pack()
-motor1_brake_label = tk.Label(motor1_frame, text="Brake Status: --")
-motor1_brake_label.pack()
+
 
 # Column 2 (Motor 2)
 motor2_frame = tk.Frame(data_frame)
@@ -55,37 +50,29 @@ motor2_speed_label = tk.Label(motor2_frame, text="Speed: --°/s")
 motor2_speed_label.pack()
 motor2_angle_label = tk.Label(motor2_frame, text="Angle: --°")
 motor2_angle_label.pack()
-motor2_brake_label = tk.Label(motor2_frame, text="Brake Status: --")
-motor2_brake_label.pack()
+
 
 # Mode settings
 MODE_SETTINGS = {
-    "speed": {"min": -500000, "max": 500000, "step": 1000},
-    "position": {"min": -36000, "max": 36000, "step": 1},
-    "torque": {"min": -100, "max": 100, "step": 1},
+    "speed": {"min": -100, "max": 100, "step": 1},
+    "position": {"min": -360, "max": 360, "step": 1},
+    "torque": {"min": -1, "max": 1, "step": 0.01},
 }
 
 # Function to Update GUI Labels
-def update_motor_data_9c(motor_id, temp, current, speed, angle):
+def update_motor_data(motor_id, data):
     if motor_id == 1:
-        motor1_temp_label.config(text=f"Temp: {temp:.2f}°C")
-        motor1_current_label.config(text=f"Current: {current:.2f} A")
-        motor1_speed_label.config(text=f"Speed: {speed:.2f}°/s")
-        motor1_angle_label.config(text=f"Angle: {angle:.2f}°")
-
+        motor1_temp_label.config(text=f"Temp: {data['temperature']:.2f}°C")
+        motor1_current_label.config(text=f"Current: {data['current']:.2f} A")
+        motor1_speed_label.config(text=f"Speed: {data['speed']:.2f}°/s")
+        motor1_angle_label.config(text=f"Angle: {data['angle']:.2f}°")
+        motor1_voltage_label.config(text=f"Voltage: {data['voltage']:.2f}V")
     elif motor_id == 2:
-        motor2_temp_label.config(text=f"Temp: {temp:.2f}°C")
-        motor2_current_label.config(text=f"Current: {current:.2f} A")
-        motor2_speed_label.config(text=f"Speed: {speed:.2f}°/s")
-        motor2_angle_label.config(text=f"Angle: {angle:.2f}°")
-
-def update_motor_data_9a(motor_id, voltage, brake):
-    if motor_id == 1:
-        motor1_voltage_label.config(text=f"Voltage: {voltage:.2f}V")
-        motor1_brake_label.config(text=f"Brake Status: {brake:.0f}")
-    elif motor_id == 2:
-        motor2_voltage_label.config(text=f"Voltage: {voltage:.2f}V")
-        motor2_brake_label.config(text=f"Brake Status: {brake:.0f}")
+        motor2_temp_label.config(text=f"Temp: {data['temperature']:.2f}°C")
+        motor2_current_label.config(text=f"Current: {data['current']:.2f} A")
+        motor2_speed_label.config(text=f"Speed: {data['speed']:.2f}°/s")
+        motor2_angle_label.config(text=f"Angle: {data['angle']:.2f}°")
+        motor2_voltage_label.config(text=f"Voltage: {data['voltage']:.2f}V")
 
 # Create mode selection (radio buttons)
 def change_mode():
@@ -94,6 +81,7 @@ def change_mode():
     slider1.config(from_=settings["min"], to=settings["max"], resolution=settings["step"])
     slider2.config(from_=settings["min"], to=settings["max"], resolution=settings["step"])
     reset_sliders()
+    robot.set_control_mode(mode.get())
 
 mode_frame = tk.Frame(root)
 mode_frame.pack(pady=10)
@@ -102,81 +90,25 @@ tk.Radiobutton(mode_frame, text="Position", variable=mode, value="position", com
 tk.Radiobutton(mode_frame, text="Torque", variable=mode, value="torque", command=change_mode).pack(side="left")
 
 # Create sliders
-slider1 = tk.Scale(root, from_=-500000, to=500000, orient="horizontal", resolution=1000, length=300, label="Slider 1")
+slider1 = tk.Scale(root, from_=MODE_SETTINGS[mode.get()]["min"], to=MODE_SETTINGS[mode.get()]["max"], orient="horizontal", resolution=1, length=300, label="Slider 1")
 slider1.pack(pady=10)
 slider1_value_label = tk.Label(root, text=f"Slider 1: {slider1.get()}")
 slider1_value_label.pack()
 
-slider2 = tk.Scale(root, from_=-500000, to=500000, orient="horizontal", resolution=1000, length=300, label="Slider 2")
+slider2 = tk.Scale(root, from_=MODE_SETTINGS[mode.get()]["min"], to=MODE_SETTINGS[mode.get()]["max"], orient="horizontal", resolution=1, length=300, label="Slider 2")
 slider2.pack(pady=10)
 slider2_value_label = tk.Label(root, text=f"Slider 2: {slider2.get()}")
 slider2_value_label.pack()
 
 def update_values():
-    """Update slider labels and send data via serial."""
+    """Update slider labels and send data to robot."""
     slider1_value_label.config(text=f"Slider 1: {slider1.get()}")
     slider2_value_label.config(text=f"Slider 2: {slider2.get()}")
 
-    setpoint1 = int(slider1.get())
-    setpoint2 = int(slider2.get())
-
-    # Construct message based on mode
-    if mode.get() == "speed":
-        message1 = [
-            0xA2, 0x00, 0x00, 0x00,
-            setpoint1 & 0xFF,
-            (setpoint1 >> 8) & 0xFF,
-            (setpoint1 >> 16) & 0xFF,
-            (setpoint1 >> 24) & 0xFF
-        ]
-        message2 = [
-            0xA2, 0x00, 0x00, 0x00,
-            setpoint2 & 0xFF,
-            (setpoint2 >> 8) & 0xFF,
-            (setpoint2 >> 16) & 0xFF,
-            (setpoint2 >> 24) & 0xFF
-        ]
-    elif mode.get() == "position":
-        max_speed = 250
-        message1 = [
-            0xA4, 
-            0x00, 
-            max_speed & 0xFF,
-            (max_speed >> 8) & 0xFF,
-            setpoint1 & 0xFF,
-            (setpoint1 >> 8) & 0xFF,
-            (setpoint1 >> 16) & 0xFF,
-            (setpoint1 >> 24) & 0xFF
-        ]
-        message2 = [
-            0xA4, 
-            0x00, 
-            max_speed & 0xFF,
-            (max_speed >> 8) & 0xFF,
-            setpoint2 & 0xFF,
-            (setpoint2 >> 8) & 0xFF,
-            (setpoint2 >> 16) & 0xFF,
-            (setpoint2 >> 24) & 0xFF
-        ]
-    else:  # torque mode
-        message1 = [
-            0xA1, 0x00, 0x00, 0x00,
-            setpoint1 & 0xFF,
-            (setpoint1 >> 8) & 0xFF,
-            0x00,
-            0x00
-        ]
-        message2 = [
-            0xA1, 0x00, 0x00, 0x00,
-            setpoint2 & 0xFF,
-            (setpoint2 >> 8) & 0xFF,
-            0x00,
-            0x00
-        ]
-
-    # Encode and send message
-    packet = bytes([START_BYTE] + message1 + message2 + [STOP_BYTE])
-    ser.write(packet)
+    setpoint1 = slider1.get()
+    setpoint2 = slider2.get()
+    
+    robot.set_target(setpoint1, setpoint2)
 
 def reset_sliders():
     """Reset sliders to 0."""
@@ -193,135 +125,48 @@ slider2.bind("<ButtonRelease-1>", lambda event: update_values())
 reset_button = tk.Button(root, text="Reset Sliders", command=reset_sliders)
 reset_button.pack(pady=10)
 
-# Serial Reading Thread
-def read_data():
-    """Reads and processes serial messages."""
-    
+# Data polling thread
+def poll_motor_data():
+    """Continuously polls motor data and updates the GUI."""
     while True:
         try:
-            if ser.in_waiting > 0:
-                line = ser.readline().decode(errors="ignore").strip()
-                if not line:
-                    continue
+            # Get data for both motors
+            data = robot.get_motors_data()
+            
+            # Prepare motor 1 data
+            motor1_data = {
+                'voltage': data['voltage'][0],
+                'current': data['current'][0],
+                'speed': data['speed'][0],
+                'angle': data['angle'][0],
+                'temperature': data['temperature'][0],
+                'power': data['power'][0],
+                'torque': data['torque'][0]
+            }
+            
+            # Prepare motor 2 data
+            motor2_data = {
+                'voltage': data['voltage'][1],
+                'current': data['current'][1],
+                'speed': data['speed'][1],
+                'angle': data['angle'][1],
+                'temperature': data['temperature'][1],
+                'power': data['power'][1],
+                'torque': data['torque'][1]
+            }
+            
+            # Update GUI
+            root.after(0, update_motor_data, 1, motor1_data)
+            root.after(0, update_motor_data, 2, motor2_data)
+            
+            time.sleep(0.1)  # Polling interval
+        except Exception as e:
+            print(f"Error polling motor data: {e}")
+            time.sleep(1)
 
-                parts = line.split()  # Split by spaces
-                if "Data:" in parts:
-                    data_index = parts.index("Data:") + 1
-                    id_index=parts.index("ID:") + 1
-                    if len(parts) >= data_index + 8:
-                        data_bytes = bytes(int(h, 16) for h in parts[data_index:data_index + 8]) 
-                        
-                        if parts[id_index]=="0x241":
-                            motor_id = 1
-                        elif parts[id_index]=="0x242":
-                            motor_id = 2
-                        else:
-                            raise Exception("Motor ID error")
-                        
-                        if data_bytes[0] == 0x9C:
-                            
-                            process_9c_message(data_bytes, motor_id)
-
-                        elif data_bytes[0] == 0x9a:
-                            process_9a_message(data_bytes, motor_id)
-
-                        else:
-                            print(line)
-        except serial.SerialException as e:
-            print(f"Serial error: {e}")
-            ser.close()
-
-# Process 0x9C Message
-def process_9c_message(data_bytes, motor_id):
-    """Processes 0x9C motor response message and updates GUI labels."""
-    if len(data_bytes) != 8:
-        print("Invalid 0x9C message:", data_bytes.hex())
-        return
-
-    # Extract values
-    temperature = int.from_bytes(data_bytes[1:2], byteorder="little", signed=True)
-    current = int.from_bytes(data_bytes[2:4], byteorder="little", signed=True) * 0.01  # 0.01A/LSB
-    speed = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)  # 1dps/LSB
-    angle = int.from_bytes(data_bytes[6:8], byteorder="little", signed=True)  # 1°/LSB
-
-    # Update GUI
-    root.after(0, update_motor_data_9c, motor_id, temperature, current, speed, angle)
-
-def process_9a_message(data_bytes, motor_id):
-    """Processes 0x9A motor response message and updates GUI labels."""
-    if len(data_bytes) != 8:
-        print("Invalid 0x9A message:", data_bytes.hex())
-        return
-
-    brake = int.from_bytes(data_bytes[3:4], byteorder="little", signed=True)   # 0.01A/LSB
-    voltage = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)*0.1  # 1dps/LSB
-
-    # Update GUI
-    root.after(0, update_motor_data_9a, motor_id, voltage,brake)
-
-# Periodic message sending thread
-def send_periodic_message():
-    """Send a periodic message every few seconds."""
-    while True:
-        time.sleep(0.1)  # Adjust time interval as needed (e.g., every 2 seconds)
-
-        message1 = [
-        0x9c, 
-        0x00, 
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00
-        ]
-        message2 = [
-            0x9c, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00
-        ]
-        
-        # Example message (heartbeat or status request)
-        packet = bytes([START_BYTE] + message1 + message2 + [STOP_BYTE])
-        ser.write(packet)
-        message1 = [
-        0x9a, 
-        0x00, 
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00
-        ]
-        message2 = [
-            0x9a, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00, 
-            0x00
-        ]
-        
-        # Example message (heartbeat or status request)
-        packet = bytes([START_BYTE] + message1 + message2 + [STOP_BYTE])
-        ser.write(packet)
-
-# Start serial reading thread
-read_thread = threading.Thread(target=read_data, daemon=True)
-read_thread.start()
-
-# Start periodic sending thread
-send_thread = threading.Thread(target=send_periodic_message, daemon=True)
-send_thread.start()
+# Start data polling thread
+poll_thread = threading.Thread(target=poll_motor_data, daemon=True)
+poll_thread.start()
 
 # Start GUI
 root.mainloop()
-ser.close()

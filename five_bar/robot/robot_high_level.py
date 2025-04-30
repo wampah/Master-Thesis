@@ -1,31 +1,40 @@
 from five_bar.five_bar import five_bar
 import time
 import numpy as np
+import pandas as pd
 
+log=[]
 # === Initialize robot ===
-robot = five_bar(SERIAL_PORT="COM15", max_speed=100)
+robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
 
 #robot._write_motor_zero_command()
 
-robot.set_control_mode("position")
-robot.set_target(45,-135)
+target1=135
+target2=-135
+
+robot.set_control_mode("position") # available modes are position, torque and speed
+robot.set_target(target1,target2)
+time.sleep(2)
 robot.start()
 
-vals=[[63.92, -242.82],
-[75, -153],
-[21.31, -105.03],
-[-55, -117.61]]
+vals=[[135,-135],
+[117.91, -217.76],
+[226.68, -93.44],
+[157.75, -92.08],
+[117.11, -198.33],
+[130.25, -125.78],
+[199.07, -195.59]]
+
+t_0=time.time()
+
 i=0
 while True:
-    robot.set_target(vals[i][0],vals[i][1])
-    #robot.set_target(0,0)
-    print(robot.get_motors_data()["angle"])
-    time.sleep(1)
-    i+=1
-    if i==len(vals):
-        i=0
-    # print(robot.target)
+    
+    if time.time()-t_0>2:
+        rand_int=np.random.randint(len(vals))
+        robot.set_target(vals[rand_int][0],vals[rand_int][1])
+        t_0=time.time()
+    
+    print(", ".join([f"{angle:.2f}" for angle in robot.get_motors_data()["angle"]]))
+    time.sleep(0.01)
 
-
-    # robot.set_target(-360,360)
-    # time.sleep(1)
