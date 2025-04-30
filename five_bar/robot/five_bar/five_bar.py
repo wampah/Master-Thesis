@@ -206,7 +206,7 @@ class five_bar:
             self.motors_data["temperature"][motor_id] = int.from_bytes(data_bytes[1:2], byteorder="little", signed=True) #1℃/LSB
             self.motors_data["current"][motor_id] = int.from_bytes(data_bytes[2:4], byteorder="little", signed=True) * 0.01 *sign_multiplier  # 0.01A/LSB
             self.motors_data["speed"][motor_id] = int.from_bytes(data_bytes[4:6], byteorder="little", signed=True)*sign_multiplier  # 1dps/LSB
-            self.motors_data["angle"][motor_id] = int.from_bytes(data_bytes[6:8], byteorder="little", signed=True)  # 1°/LSB
+            self.motors_data["angle"][motor_id] = int.from_bytes(data_bytes[6:8], byteorder="little", signed=True)*sign_multiplier  # 1°/LSB
             
         else:
             print("Unknown Information Received:", data)
