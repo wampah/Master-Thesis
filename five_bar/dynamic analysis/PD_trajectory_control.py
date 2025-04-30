@@ -31,7 +31,7 @@ lasty = 0
 
 def init_controller(model,data):
     #initialize the controller here. This function is called once, in the beginning
-    pass
+    print(f"Initial config: ",data.qpos)
 
 ctrl1_values = []
 ctrl2_values = []
