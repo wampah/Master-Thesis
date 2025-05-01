@@ -5,6 +5,7 @@ Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Est
 
 ## Prerequsitos
 - Python 3.12
+- ffmpeg
 - pip
 - virtualenv
 
@@ -47,8 +48,12 @@ Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Est
     Con el entorno virtual activo, instala las dependencias necesarias ejecutando:
 
     ```bash
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
     pip install -r requirements.txt
     ```
+
+    Nota: El "requirements.txt" incluye las librerias de pytorch para CUDA. Estas no se pueden descargar via pipor lo cual se deben  descargar con el comando especificado.
+
 4. **Instala el Paquete en Modo Editable**
 
     Para instalar el paquete en modo editable, ejecuta el siguiente comando:
