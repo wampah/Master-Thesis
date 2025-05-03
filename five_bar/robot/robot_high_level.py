@@ -12,8 +12,7 @@ robot = five_bar(SERIAL_PORT="COM16", max_speed=50)
 target1=135
 target2=-135
 
-robot.set_control_mode("position") # available modes are position, torque and speed
-robot.set_target(target1,target2)
+robot.set_control_mode("position",target1,target2) # available modes are position, torque and speed
 time.sleep(2)
 robot.start()
 

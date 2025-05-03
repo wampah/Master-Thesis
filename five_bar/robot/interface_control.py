@@ -5,7 +5,7 @@ from five_bar.five_bar import five_bar
 
 # Initialize the robot
 robot = five_bar(SERIAL_PORT="COM16", max_speed=100)
-robot.set_control_mode("position")  # Default mode
+robot.set_control_mode("position",135,-135)  # Default mode
 robot.start()
 
 # GUI Setup
@@ -80,8 +80,11 @@ def change_mode():
     settings = MODE_SETTINGS[mode.get()]
     slider1.config(from_=settings["min"], to=settings["max"], resolution=settings["step"])
     slider2.config(from_=settings["min"], to=settings["max"], resolution=settings["step"])
+    if mode.get()== "position":
+        robot.set_control_mode(mode.get(),robot.get_motors_data()["angle"][0],robot.get_motors_data()["angle"][1])
+    else:
+        robot.set_control_mode(mode.get(),0,0)
     reset_sliders()
-    robot.set_control_mode(mode.get())
 
 mode_frame = tk.Frame(root)
 mode_frame.pack(pady=10)
@@ -94,11 +97,13 @@ slider1 = tk.Scale(root, from_=MODE_SETTINGS[mode.get()]["min"], to=MODE_SETTING
 slider1.pack(pady=10)
 slider1_value_label = tk.Label(root, text=f"Slider 1: {slider1.get()}")
 slider1_value_label.pack()
+slider1.set(robot.get_motors_data()["angle"][0])
 
 slider2 = tk.Scale(root, from_=MODE_SETTINGS[mode.get()]["min"], to=MODE_SETTINGS[mode.get()]["max"], orient="horizontal", resolution=1, length=300, label="Slider 2")
 slider2.pack(pady=10)
 slider2_value_label = tk.Label(root, text=f"Slider 2: {slider2.get()}")
 slider2_value_label.pack()
+slider2.set(robot.get_motors_data()["angle"][1])
 
 def update_values():
     """Update slider labels and send data to robot."""
@@ -112,8 +117,14 @@ def update_values():
 
 def reset_sliders():
     """Reset sliders to 0."""
-    slider1.set(0)
-    slider2.set(0)
+    
+    if mode.get()== "position":
+        slider1.set(robot.get_motors_data()["angle"][0])
+        slider2.set(robot.get_motors_data()["angle"][1])
+    else:
+        slider1.set(0)
+        slider2.set(0)
+    
     update_values()
 
 # Bind events for real-time updates

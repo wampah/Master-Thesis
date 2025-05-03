@@ -7,9 +7,8 @@ import numpy as np
 
 # === Initialize robot ===
 robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
-robot.set_control_mode("position")
+robot.set_control_mode("position",135,-135)
 
-robot.set_target(135,-135)
 robot.start()
 
 vals=[[135,-135],

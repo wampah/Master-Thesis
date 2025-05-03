@@ -5,19 +5,9 @@ import pandas as pd
 import os
 
 robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
-robot.set_control_mode("position")
-
-target1=135
-target2=-135
-
-robot.set_target(target1,target2)
-
+robot.set_control_mode("position", 135, -135)
 robot.start()
-
-
-
-time.sleep(5)
-
+time.sleep(5)  # Let robot settle
 
 vals = [
     [135, -135],
@@ -32,17 +22,18 @@ vals = [
 # Data collection setup
 data_log = []
 current_series_id = 0
-t_series_start = time.time()
-t_last_change = t_series_start
+series_duration = 3
+start_time = time.time()
+series_phase = 0
 
-while current_series_id<20:
-    # Get current time and data
-    t_now = time.time()
+while current_series_id < 20:
+    now = time.time()
+    t_series = now - start_time
+
+    # Get and log data
     motor_data = robot.get_motors_data()
-    
-    # Record data point
     data_log.append({
-        'time': t_now - t_series_start,
+        'time': t_series,
         'series_id': current_series_id,
         'angle1': motor_data["angle"][0],
         'angle2': motor_data["angle"][1],
@@ -53,21 +44,29 @@ while current_series_id<20:
         'target1': vals[current_series_id % len(vals)][0],
         'target2': vals[current_series_id % len(vals)][1]
     })
-    
-    # Print current angles
-    #print(", ".join([f"{angle:.2f}" for angle in motor_data["angle"]]))
-    
-    # Change target every 2 seconds
-    if t_now - t_last_change > 2:
+
+    # Timing control logic
+    if series_phase == 0 and t_series >= 0:
+        robot.set_control_mode("torque", 0, 0)
+        series_phase = 1
+
+    elif series_phase == 1 and t_series >= 0.5:
+        rand_int = np.random.randint(len(vals))
+        target = vals[rand_int]
+        robot.set_control_mode("position", target[0], target[1])
+        series_phase = 2
+
+    elif series_phase == 2 and t_series >= 2.5:
+        robot.set_control_mode("torque", 0, 0)
+        series_phase = 3
+
+    elif series_phase == 3 and t_series >= 0.5:
         current_series_id += 1
-        new_target = vals[current_series_id % len(vals)]
-        robot.set_target(new_target[0], new_target[1])
-        t_last_change = t_now
-        t_series_start = t_now  # Reset timer for new series
-        
-    time.sleep(0.05)
+        start_time = now
+        series_phase = 0
 
-# Final save when loop exits
+    time.sleep(0.01)
+
+# Save data
 df = pd.DataFrame(data_log)
-df.to_csv(os.path.join('five_bar','digital_twin','data','robot_data_final.csv'), index=False)
-
+df.to_csv(os.path.join('five_bar', 'digital_twin', 'data', 'robot_data_final.csv'), index=False)
