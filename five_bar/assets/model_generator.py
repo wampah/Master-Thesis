@@ -182,35 +182,44 @@ link_height=0.026
 link_separation=0.003
 max_torque=1.6
 
+rotor1_D=89e-3# From Motor Spec
+rotor2_D=rotor1_D
+rotor1_H=28e-3# From Motor Spec
+rotor2_H=rotor1_H
+
 q0=[2.356194490192345,
     0.999107158546108,
     -0.999107158546108,
     -2.356194490192345]
 
-inertia_p1=0.00038976
-inertia_p2=inertia_p1
-inertia_d1=0.00158076
-inertia_d2=inertia_d1
 
-mass_p1=0.65639730
-mass_p2=mass_p1
-mass_d1=0.25965946
-mass_d2=mass_d1
 
-damping_bp1=0
-damping_bp2=0
-damping_p1d1=0
-damping_p2d2=0
+inertia_rotor1=0.0036246659837414308
+inertia_rotor2=0.0036246659837414308
+inertia_p1=0.003404427722363115
+inertia_p2=0.003404427722363115
+inertia_d1=0.004724720400236029
+inertia_d2=0.004724720400236029
+com_offset_p1=-0.008133117577778232
+com_offset_p2=0.008133117577778232
+com_offset_d1=0.01
+com_offset_d2=-0.01
+mass_rotor1=0.65
+mass_rotor2=0.65
+mass_p1=0.1472
+mass_p2=0.1472
+mass_d1=0.1934
+mass_d2=0.1934
+damping_bp1=0.0
+damping_bp2=0.00690291315996407
+damping_p1d1=0.0
+damping_p2d2=0.0
+dryfrict_bp1=0.07378660332065916
+dryfrict_bp2=0.08236076287466008
+dryfrict_p1d1=0.017929769090750527
+dryfrict_p2d2=0.017929769090750527
 
-dryfrict_bp1=0.01
-dryfrict_bp2=dryfrict_bp1
-dryfrict_p1d1=0.01
-dryfrict_p2d2=dryfrict_p1d1
 
-rotor1_D=89e-3# From Motor Spec
-rotor2_D=rotor1_D
-rotor1_H=28e-3# From Motor Spec
-rotor2_H=rotor1_H
 
 inertia_rotor1=0.0003271 # From Motor Spec
 inertia_rotor2=inertia_rotor1
