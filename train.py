@@ -54,7 +54,7 @@ if __name__ == "__main__":
         
         params={"enA":1,"diA":1,"enB":1,"diB":1}
 
-        env = gym.make("five_bar-v0", render_mode=None, camera_name="free",
+        env = gym.make("five_bar-v0", render_mode="human", camera_name="free",
                        reward_dist_weight_A= params["diA"],
                        reward_dist_weight_B= params["diB"],
                        reward_control_weight_A = params["enA"],

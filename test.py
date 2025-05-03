@@ -36,9 +36,9 @@ if __name__ == "__main__":
         model_name = sys.argv[1]
         
         env = gym.make("five_bar-v0", render_mode="human", camera_name="free")
-        print("Checking Env...")
-        check_env(env)
-        print("Env check finished")
+        # print("Checking Env...")
+        # check_env(env)
+        # print("Env check finished")
         model=model_load(env,model_name)
         
         vec_env = model.get_env()
@@ -46,15 +46,19 @@ if __name__ == "__main__":
         obs = vec_env.reset()
         energies, distances = [], []
         current_energy, current_distance = [], []
+        
+        angle1,angle2= [], []
 
         episodes = 0
-        while episodes < 1000:
+        while episodes < 1:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
 
             current_energy.append(info[0]["energy"])
             current_distance.append(info[0]["distance"])
 
+            angle1.append(info[0]["qpos"][0])
+            angle2.append(info[0]["qpos"][2])
             if done:
                 episodes += 1
                 energies.append(current_energy[:])

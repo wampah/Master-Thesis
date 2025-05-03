@@ -79,10 +79,10 @@ def objective(trial):
     algo_name="sac"   
     # Sample parameters
     params = {
-        "enA": trial.suggest_float("enA", 0.1, 10.0),
-        "diA": trial.suggest_float("diA", 0.1, 10.0),
-        "enB": trial.suggest_float("enB", 0.1, 10.0),
-        "diB": trial.suggest_float("diB", 0.1, 10.0),
+        "enA": trial.suggest_float("enA", 0.01, 10.0),
+        "diA": trial.suggest_float("diA", 0.01, 10.0),
+        "enB": trial.suggest_float("enB", 0.01, 10.0),
+        "diB": trial.suggest_float("diB", 0.01, 10.0),
     }
 
     # Create environment with sampled parameters
@@ -92,7 +92,7 @@ def objective(trial):
                    reward_control_weight_A=params["enA"],
                    reward_control_weight_B=params["enB"])
     
-    model = train(env, algo_name, params, timesteps=3_000_000)
+    model = train(env, algo_name, params, timesteps=5_000_000)
 
     print("-"*50,"Evaluating Agent","-"*50)
     
