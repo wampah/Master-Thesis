@@ -1,8 +1,7 @@
 import gymnasium as gym
-import five_bar
 from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
 from stable_baselines3.common.env_checker import check_env
-
+import five_bar
 import os
 import sys
 import matplotlib.pyplot as plt
@@ -50,7 +49,7 @@ if __name__ == "__main__":
         angle1,angle2= [], []
 
         episodes = 0
-        while episodes < 1:
+        while episodes < 100:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
 

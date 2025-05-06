@@ -13,8 +13,8 @@ DEFAULT_CAMERA_CONFIG = {
     "trackbodyid": 0
     }
 
-FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets","5_bar.xml")
-DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dynamic analysis","data","initial_pts.parquet")
+FILE_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets","5_bar.xml")
+DATA_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "dynamic analysis","data","initial_pts.parquet")
 
 class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
     metadata = {

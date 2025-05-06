@@ -1,5 +1,5 @@
 import gymnasium as gym
-import five_bar
+import five_bar.RL.envs as envs
 from stable_baselines3 import A2C,PPO,SAC, TD3, DDPG
 import os
 import optuna
@@ -92,7 +92,7 @@ def objective(trial):
                    reward_control_weight_A=params["enA"],
                    reward_control_weight_B=params["enB"])
     
-    model = train(env, algo_name, params, timesteps=5_000_000)
+    model = train(env, algo_name, params, timesteps=50)
 
     print("-"*50,"Evaluating Agent","-"*50)
     
@@ -104,7 +104,7 @@ def objective(trial):
     obs = vec_env.reset()
 
     episodes = 0
-    while episodes < 10000:
+    while episodes < 10:
         action, _ = model.predict(obs, deterministic=True)
         obs, reward, done, info = vec_env.step(action)
         #vec_env.render("human")
