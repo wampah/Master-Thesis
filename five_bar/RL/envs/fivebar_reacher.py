@@ -35,6 +35,9 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         reward_dist_weight_B: float = 1,
         reward_control_weight_B: float = 1,
         reset_robot_pos_every_episode: bool =False,
+        specify_data_configuration=None,
+        specify_data_trim_x=None,
+        specify_data_trim_y=None,
         **kwargs,
     ):
         utils.EzPickle.__init__(
@@ -47,6 +50,9 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             reward_dist_weight_B,
             reward_control_weight_B,
             reset_robot_pos_every_episode,
+            specify_data_configuration=None,
+            specify_data_trim_x=None,
+            specify_data_trim_y=None,
             **kwargs,
         )        
         
@@ -55,7 +61,35 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         self._reward_dist_weight_B = reward_dist_weight_B
         self._reward_control_weight_B = reward_control_weight_B
         
-        self.initial_pts=pd.read_parquet(DATA_PATH)
+        data=pd.read_parquet(DATA_PATH)
+
+        if specify_data_configuration == '(-,+)':
+            self.initial_pts=data[data["case"]=='(-,+)']
+            
+        elif specify_data_configuration == '(+,+)':
+            self.initial_pts=data[data["case"]=='(+,+)']
+            
+        elif specify_data_configuration == '(+,-)':
+            self.initial_pts=data[data["case"]=='(+,-)']
+            
+        elif specify_data_configuration == '(-,-)':
+            self.initial_pts=data[data["case"]=='(-,-)']
+            
+        else:
+            self.initial_pts=data
+            
+        if specify_data_trim_x=="positive":
+            self.initial_pts=self.initial_pts[self.initial_pts["eff_x"]>0]
+        elif specify_data_trim_x=="negative":
+            self.initial_pts=self.initial_pts[self.initial_pts["eff_x"]<0]
+        else:
+            pass
+        if specify_data_trim_y=="positive":
+            self.initial_pts=self.initial_pts[self.initial_pts["eff_y"]>0]
+        elif specify_data_trim_y=="negative":
+            self.initial_pts=self.initial_pts[self.initial_pts["eff_y"]<0]
+        else:
+            pass
         
         self.reset_robot_pos_every_episode=reset_robot_pos_every_episode
         
@@ -69,11 +103,17 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             default_camera_config=DEFAULT_CAMERA_CONFIG,
             **kwargs,
             )
+        
+        self.model_initial_qpos=self.data.qpos.copy()
+        self.model_initial_qvel=self.data.qvel.copy()
+        
         # Rescale actions
         self.original_low = np.array([-1.6, -1.6])  # Torques - This has to agree with the xml model!
         self.original_high = np.array([1.6, 1.6])
 
         self.action_space = spaces.Box(low=-1.0, high=1.0, shape=self.original_low.shape, dtype=np.float32)
+        
+        self.goal=[None]
 
 
     def step(self, action):
@@ -94,7 +134,6 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         reward_info = {
             "distance": distance,
             "energy": energy,
-            "qpos":self.data.qpos
         }
         
         if (self.render_mode=="human"):
@@ -124,14 +163,16 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         j3=q_d1-q_p1
         j4=q_d2-q_p2
         
-        random_effs = self.initial_pts.iloc[random_index2]
+        self.goal=self.initial_pts.iloc[random_index2]
 
-        self.goal=np.array([random_effs['eff_x'],random_effs["eff_y"]])
-        
-        if self.reset_robot_pos_every_episode:
-            qpos = np.array([j1,j3,j2,j4,self.goal[0],self.goal[1]])
+        if self.reset_robot_pos_every_episode==True:
+            qpos = np.array([j1,j3,j2,j4,self.goal['eff_x'],self.goal["eff_y"]])
+        elif self.reset_robot_pos_every_episode==False:
+            qpos = np.array([self.data.qpos[0],self.data.qpos[1],self.data.qpos[2],self.data.qpos[3],self.goal['eff_x'],self.goal["eff_y"]])
         else:
-            qpos = np.array([self.data.qpos[0],self.data.qpos[1],self.data.qpos[2],self.data.qpos[3],self.goal[0],self.goal[1]])
+            qpos = np.array([self.model_initial_qpos[0],self.model_initial_qpos[1],self.model_initial_qpos[2],self.model_initial_qpos[3],self.goal['eff_x'],self.goal["eff_y"]])
+            
+        
         qvel=np.zeros(self.model.nv)
 
         self.set_state(qpos, qvel)
@@ -167,3 +208,13 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
                 (self.get_body_com("end_effector")-self.get_body_com("target"))[:2]
             ]
         )
+        
+    def get_simulation_state(self):
+        return {
+            "time": self.data.time,
+            "qpos": self.data.qpos.copy(),
+            "qvel": self.data.qvel.copy(),
+            "ctrl": self.data.ctrl.copy(),
+            "goal": self.goal.copy()
+        }
+        
