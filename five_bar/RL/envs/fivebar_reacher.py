@@ -36,8 +36,8 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
         reward_control_weight_B: float = 1,
         reset_robot_pos_every_episode: bool =False,
         specify_data_configuration=None,
-        specify_data_trim_x=None,
-        specify_data_trim_y=None,
+        specify_data_x_lims=None,
+        specify_data_y_lims=None,
         **kwargs,
     ):
         utils.EzPickle.__init__(
@@ -51,8 +51,8 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             reward_control_weight_B,
             reset_robot_pos_every_episode,
             specify_data_configuration=None,
-            specify_data_trim_x=None,
-            specify_data_trim_y=None,
+            specify_data_x_lims=None,
+            specify_data_y_lims=None,
             **kwargs,
         )        
         
@@ -77,19 +77,19 @@ class FiveBar_Reacher(MujocoEnv, utils.EzPickle):
             
         else:
             self.initial_pts=data
-            
-        if specify_data_trim_x=="positive":
-            self.initial_pts=self.initial_pts[self.initial_pts["eff_x"]>0]
-        elif specify_data_trim_x=="negative":
-            self.initial_pts=self.initial_pts[self.initial_pts["eff_x"]<0]
-        else:
-            pass
-        if specify_data_trim_y=="positive":
-            self.initial_pts=self.initial_pts[self.initial_pts["eff_y"]>0]
-        elif specify_data_trim_y=="negative":
-            self.initial_pts=self.initial_pts[self.initial_pts["eff_y"]<0]
-        else:
-            pass
+        
+        if specify_data_x_lims is not None:
+            self.initial_pts = self.initial_pts[
+                (self.initial_pts["eff_x"] > specify_data_x_lims[0]) &
+                (self.initial_pts["eff_x"] < specify_data_x_lims[1])
+            ]
+
+        if specify_data_y_lims is not None:
+            self.initial_pts = self.initial_pts[
+                (self.initial_pts["eff_y"] > specify_data_y_lims[0]) &
+                (self.initial_pts["eff_y"] < specify_data_y_lims[1])
+            ]
+
         
         self.reset_robot_pos_every_episode=reset_robot_pos_every_episode
         
