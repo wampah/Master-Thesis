@@ -4,11 +4,13 @@ import numpy as np
 import pandas as pd
 import os
 
-robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
+# Initialize robot
+robot = five_bar(SERIAL_PORT="COM16", max_speed=300)
 robot.set_control_mode("position", 135, -135)
 robot.start()
 time.sleep(5)  # Let robot settle
 
+# Predefined target positions
 vals = [
     [135, -135],
     [117.91, -217.76],
@@ -25,8 +27,9 @@ current_series_id = 0
 series_duration = 3
 start_time = time.time()
 series_phase = 0
+previous_rand_int = -1  # Track previous target index
 
-while current_series_id < 20:
+while current_series_id < 51:
     now = time.time()
     t_series = now - start_time
 
@@ -51,7 +54,12 @@ while current_series_id < 20:
         series_phase = 1
 
     elif series_phase == 1 and t_series >= 0.5:
+        # Generate a random target different from the last one
         rand_int = np.random.randint(len(vals))
+        while rand_int == previous_rand_int:
+            rand_int = np.random.randint(len(vals))
+        previous_rand_int = rand_int
+
         target = vals[rand_int]
         robot.set_control_mode("position", target[0], target[1])
         series_phase = 2
@@ -67,6 +75,6 @@ while current_series_id < 20:
 
     time.sleep(0.01)
 
-# Save data
+# Save data to CSV
 df = pd.DataFrame(data_log)
 df.to_csv(os.path.join('five_bar', 'digital_twin', 'data', 'robot_data_final.csv'), index=False)
