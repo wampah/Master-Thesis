@@ -284,7 +284,51 @@ class five_bar:
                 self._write_serial(msg)
         else:
             print("Motor Zero can only be set when threads are not running.")
+            
+    def write_PID_read_command(self):
+        """
+        Sends PID read messages to motors. Only allowed when threads are inactive.
+        """
+        if not self.threads_status:
+            for msg in self._get_PID_read_messages():
+                self._write_serial(msg)
+                time.sleep(0.5)
+                print(self._read_serial())
+        else:
+            print("Motor Zero can only be set when threads are not running.")
+            
+    def write_PID_write_command(self,currKP,currKI,spdKP,spdKI,posKP,posKI):
+        """
+        Write PID gains to the motors via serial (current, speed, position).
 
+        Args:
+            currKP (int): Current loop proportional gain [0-255].
+            currKI (int): Current loop integral gain [0-255].
+            spdKP (int): Speed loop proportional gain [0-255].
+            spdKI (int): Speed loop integral gain [0-255].
+            posKP (int): Position loop proportional gain [0-255].
+            posKI (int): Position loop integral gain [0-255].
+
+        Raises:
+            Exception: If any argument is outside [0, 255].
+
+        Notes:
+            Only allowed when threads are inactive. Prints motor response after each write.
+        """
+        for arg in [currKP,currKI,spdKP,spdKI,posKP,posKI]:
+            if (arg>255) or (arg<0):
+                raise Exception("Arguments must be between 0 and 255 (inclusive)")
+            
+        currKP, currKI, spdKP, spdKI, posKP, posKI = map(int, [currKP, currKI, spdKP, spdKI, posKP, posKI])
+        
+        if not self.threads_status:
+            for msg in self._get_PID_write_messages(currKP,currKI,spdKP,spdKI,posKP,posKI):
+                self._write_serial(msg)
+                time.sleep(0.5)
+                print(self._read_serial())
+        else:
+            print("Motor Zero can only be set when threads are not running.")
+             
     def _get_motor_zero_messages(self):
         """
         Returns CAN messages to zero both motor encoders.
@@ -296,6 +340,32 @@ class five_bar:
             [self.motors_data["motor_ID"][0], 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
             [self.motors_data["motor_ID"][1], 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
         ]
+        
+    def _get_PID_read_messages(self):
+        """
+        Returns CAN messages get pid parameters.
+
+        Returns:
+            list: Messages for getting pid parameters.
+        """
+        return [
+            [self.motors_data["motor_ID"][0], 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00],
+            [self.motors_data["motor_ID"][1], 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+        ]
+        
+    def _get_PID_write_messages(self,currKP,currKI,spdKP,spdKI,posKP,posKI):
+        """
+        Returns CAN messages write pid parameters.
+
+        Returns:
+            list: Messages for writing pid parameters.
+        """
+        return [
+            [self.motors_data["motor_ID"][0], 0x32, 0x00, currKP & 0xFF, currKI & 0xFF, spdKP & 0xFF, spdKI & 0xFF, posKP & 0xFF, posKI & 0xFF],
+            [self.motors_data["motor_ID"][1], 0x32, 0x00, currKP & 0xFF, currKI & 0xFF, spdKP & 0xFF, spdKI & 0xFF, posKP & 0xFF, posKI & 0xFF]
+        ]
+
+
 
     def _get_system_reset_message(self):
         """
