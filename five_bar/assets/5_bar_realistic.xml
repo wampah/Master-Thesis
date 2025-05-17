@@ -27,33 +27,32 @@
         <geom name="worldbody" size="1 1 .01" pos="0 0 -.2" type="plane" material="grid"/>
         <body name="base" pos="0 0 0">
             <body name="proximal1" pos="-0.0375 0.0 0.0435" euler="0 0 135.0">
-                <inertial pos='0.1 0 0' mass='0.1472' diaginertia='0.003404427722363115 0.003404427722363115 0.003404427722363115'/>
+                <inertial pos='0.04462563 0 0' mass='0.1472' diaginertia='0.0017638590232535761 0.0017638590232535761 0.0017638590232535761'/>
                 <body name="rotor1" pos="0 0 0.027"> 
                     <geom type="cylinder" size="0.0445 0.014" rgba="0 0 0 1"/>
-                    <inertial pos="0 0 0" mass="0.65" diaginertia='0.0003271 0.0003271 0.0003271' />
+                    <inertial pos="0 0 0" mass="0.65" diaginertia='0.001227 0.001227 0.001227' />
                 </body>
-                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="0.01" frictionloss="0.07378660332065916" stiffness="0" ref="135.0"/>
+                <joint name="joint1" type="hinge" axis="0 0 1" pos="0 0 0"   damping="0.000421" frictionloss="0.076466" stiffness="0" ref="135.0"/>
                 <geom name="proximal1" type="mesh" mesh="Proximal_Link_1" condim="1" material="aluminum_material"/>
                 <body name="distal1" pos="0.1 0 -0.028999999999999998" euler="0 0 -77.755376534">
-                    <inertial pos='0.15000000000000002 0 0' mass='0.1934' diaginertia='0.004724720400236029 0.004724720400236029 0.004724720400236029'/>
-                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.01" frictionloss="0.017929769090750527" stiffness="0" ref="-77.755376534"/>
+                    <inertial pos='0.1 0 0' mass='0.1934' diaginertia='0.009729 0.009729 0.009729'/>
+                    <joint name="joint3" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.001" frictionloss="0.001" stiffness="0" ref="-77.755376534"/>
                     <geom name="distal1" type="mesh" mesh="Distal_Link_1" condim="1" material="aluminum_material"/>
                 </body>
             </body>
             <body name="proximal2" pos="0.0375 0.0 -0.0435" euler="0 0 -135.0">
-                <inertial pos='-0.1 0 0' mass='0.1472' diaginertia='0.003404427722363115 0.003404427722363115 0.003404427722363115'/>
+                <inertial pos='-0.04462563 0 0' mass='0.1472' diaginertia='0.0017638590232535761 0.0017638590232535761 0.0017638590232535761'/>
                 <body name="rotor2" pos="0 0 -0.027"> 
                     <geom type="cylinder" size="0.0445 0.014" rgba="0 0 0 1"/>
-                    <inertial pos="0 0 0" mass="0.65" diaginertia='0.0003271 0.0003271 0.0003271' />
+                    <inertial pos="0 0 0" mass="0.65" diaginertia='0.001287 0.001287 0.001287' />
                 </body>
-                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.00690291315996407" frictionloss="0.08236076287466008" stiffness="0"  ref="-135.0"/>
+                <joint name="joint2" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.000249" frictionloss="0.106939" stiffness="0"  ref="-135.0"/>
                 <geom name="proximal2" type="mesh" mesh="Proximal_Link_2" condim="1" material="aluminum_material"/>
                 <body name="distal2" pos="-0.1 0 0.028999999999999998" euler="0 0 77.755376534">
-                    <inertial pos='-0.15000000000000002 0 0' mass='0.1934' diaginertia='0.004724720400236029 0.004724720400236029 0.004724720400236029'/>
-                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.01" frictionloss="0.017929769090750527" stiffness="0" ref="77.755376534"/>
+                    <inertial pos='-0.1 0 0' mass='0.1934' diaginertia='0.009729 0.009729 0.009729'/>
+                    <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="0.001" frictionloss="0.001" stiffness="0" ref="77.755376534"/>
                     <geom name="distal2" type="mesh" mesh="Distal_Link_2" condim="1" material="aluminum_material"/>
                     <body name="end_effector" pos="-0.2 0 0">
-                        <joint name="joint5" type="hinge" axis="0 0 1" pos="0 0 0"   damping="0.1" frictionloss="0.1" stiffness="0" ref="-114.48924693199997"/>
 					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".001" type="sphere"/>
                         <inertial pos="0 0 0" mass="0.000001" diaginertia='0.00000001 0.00000001 0.00000001' />
 				    </body>
@@ -67,7 +66,7 @@
 	    </body>
     </worldbody>
     <equality>
-		<weld anchor="0 0 0"  active="true" torquescale="1000" body1="distal1" body2="end_effector" name="equality_constraint "/>
+		<connect anchor="0 0 0"  active="true" body1="end_effector" body2="distal1" name="equality_constraint "/>
 	</equality>
     <sensor>
 		<framepos objtype="body" objname="end_effector"/>

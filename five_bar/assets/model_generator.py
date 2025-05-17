@@ -6,8 +6,8 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
                         inertia_rotor1,inertia_rotor2,inertia_p1,inertia_p2,inertia_d1,inertia_d2,
                         com_offset_p1,com_offset_p2,com_offset_d1,com_offset_d2,
                         mass_rotor1,mass_rotor2,mass_p1,mass_p2,mass_d1,mass_d2,
-                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,damping_d1d2,
-                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,dryfrict_d1d2
+                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,
+                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2
                         ):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
@@ -51,7 +51,6 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
                     <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p2d2}" frictionloss="{dryfrict_p2d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
                     <geom name="distal2" type="box" size="{L_d2/2} {link_width/2} {link_height/2}" pos="{-L_d2/2} 0 0" rgba="0 1 0 1"/>
                     <body name="end_effector" pos="{-L_d2} 0 0">
-                        <joint name="joint5" type="hinge" axis="0 0 1" pos="0 0 0"   damping="{damping_d1d2}" frictionloss="{dryfrict_d1d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[1])}"/>
 					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".001" type="sphere"/>
                         <inertial pos="0 0 0" mass="0.000001" diaginertia='0.00000001 0.00000001 0.00000001' />
 				    </body>
@@ -65,7 +64,7 @@ def generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,
 	    </body>
     </worldbody>
     <equality>
-		<weld anchor="0 0 0" active="true" torquescale="1000" body1="distal1" body2="end_effector" name="equality_constraint"/>
+		<connect anchor="0 0 0" active="true" body1="end_effector" body2="distal1" name="equality_constraint"/>
 	</equality>
     <sensor>
 		<framepos objtype="body" objname="end_effector"/>
@@ -86,8 +85,8 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
                         inertia_rotor1,inertia_rotor2,inertia_p1,inertia_p2,inertia_d1,inertia_d2,
                         com_offset_p1,com_offset_p2,com_offset_d1,com_offset_d2,
                         mass_rotor1,mass_rotor2,mass_p1,mass_p2,mass_d1,mass_d2,
-                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,damping_d1d2,
-                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,dryfrict_d1d2
+                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,
+                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,
                         ):
     xml_template = f"""
 <mujoco model="parallel_5_bar_mechanism">
@@ -144,7 +143,6 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
                     <joint name="joint4" type="hinge" axis="0 0 1" pos="0 0 0"  damping="{damping_p2d2}" frictionloss="{dryfrict_p2d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[3])}"/>
                     <geom name="distal2" type="mesh" mesh="Distal_Link_2" condim="1" material="aluminum_material"/>
                     <body name="end_effector" pos="{-L_d2} 0 0">
-                        <joint name="joint5" type="hinge" axis="0 0 1" pos="0 0 0"   damping="{damping_d1d2}" frictionloss="{dryfrict_d1d2}" stiffness="0" ref="{np.rad2deg(q0[2]-q0[1])}"/>
 					    <geom contype="0" name="end_effector" pos="0 0 0" rgba="0.0 0.8 0.6 1" size=".001" type="sphere"/>
                         <inertial pos="0 0 0" mass="0.000001" diaginertia='0.00000001 0.00000001 0.00000001' />
 				    </body>
@@ -158,7 +156,7 @@ def generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,l
 	    </body>
     </worldbody>
     <equality>
-		<weld anchor="0 0 0"  active="true" torquescale="1000" body1="distal1" body2="end_effector" name="equality_constraint "/>
+		<connect anchor="0 0 0"  active="true" body1="end_effector" body2="distal1" name="equality_constraint "/>
 	</equality>
     <sensor>
 		<framepos objtype="body" objname="end_effector"/>
@@ -199,53 +197,59 @@ q0=[2.356194490192345,
     -0.999107158546108,
     -2.356194490192345]
 
+#----------------------- SysID params ---------------------
 
-
-inertia_rotor1=0.0036246659837414308
-inertia_rotor2=0.0036246659837414308
-inertia_p1=0.003404427722363115
-inertia_p2=0.003404427722363115
-inertia_d1=0.004724720400236029
-inertia_d2=0.004724720400236029
-com_offset_p1=-0.008133117577778232
-com_offset_p2=0.008133117577778232
-com_offset_d1=0.01
-com_offset_d2=-0.01
 mass_rotor1=0.65
 mass_rotor2=0.65
-mass_p1=0.1472
-mass_p2=0.1472
-mass_d1=0.1934
-mass_d2=0.1934
-damping_bp1=0.01
-damping_bp2=0.00690291315996407
-damping_p1d1=0.01
-damping_p2d2=0.01
-dryfrict_bp1=0.07378660332065916
-dryfrict_bp2=0.08236076287466008
-dryfrict_p1d1=0.017929769090750527
-dryfrict_p2d2=0.017929769090750527
-damping_d1d2=0.1
-dryfrict_d1d2=0.1
 
-inertia_rotor1=0.0003271 # From Motor Spec
-inertia_rotor2=inertia_rotor1
+mass_p1=0.1472 #± 0.0001 kg
+mass_p2=mass_p1 
 
-mass_rotor1=0.65
-mass_rotor2=mass_rotor1
+mass_d1=0.1934 #± 0.0001 kg
+mass_d2=mass_d1
 
-com_offset_p1=.05
+com_offset_p1=-0.00537437 #± 0.0001 m
 com_offset_p2=-com_offset_p1
-com_offset_d1=.05
+
+com_offset_d1=0.0 #± 0.0001 m
 com_offset_d2=-com_offset_d1
+
+
+inertia_rotor1=0.001227 #± 0.000010 kgm**2
+inertia_rotor2=0.001287 #± 0.000013 kgm**2
+
+
+
+inertia_p1_axis=0.002057#± 0.000015 kgm**2
+inertia_p1=inertia_p1_axis-mass_p1*(L_p1/2+com_offset_p1)**2
+inertia_p2=inertia_p1
+
+inertia_d1_axis=0.011663#± 0.000193 kgm**2
+inertia_d1=inertia_d1_axis-mass_d1*(L_d1/2+com_offset_d1)**2
+inertia_d2=inertia_d1
+
+print("inertia_p1 ",inertia_p1)
+print("inertia_d1 ",inertia_d1)
+
+damping_bp1=0.000421 #± 0.000026 kgm**2
+damping_bp2=0.000249 #± 0.000018 kgm**2
+
+dryfrict_bp1=0.076466#± 0.000882 kgm**2
+dryfrict_bp2=0.106939#± 0.000585 kgm**2
+
+damping_p1d1=0.001
+damping_p2d2=damping_p1d1
+
+dryfrict_p1d1=0.001
+dryfrict_p2d2=dryfrict_p1d1
 
 xml_content = generate_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,rotor1_D,rotor2_D,rotor1_H,rotor2_H,
                         max_torque,q0,
                         inertia_rotor1,inertia_rotor2,inertia_p1,inertia_p2,inertia_d1,inertia_d2,
                         com_offset_p1,com_offset_p2,com_offset_d1,com_offset_d2,
                         mass_rotor1,mass_rotor2,mass_p1,mass_p2,mass_d1,mass_d2,
-                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,damping_d1d2,
-                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,dryfrict_d1d2
+                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,
+                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,
                         )
 
 xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2,L_d1,L_d2,link_width,link_height,link_separation,rotor1_D,rotor2_D,rotor1_H,rotor2_H,
@@ -253,8 +257,8 @@ xml_realistic = generate_realistic_mujoco_xml(timestep,o1x,o1y,o2x,o2y,L_p1,L_p2
                         inertia_rotor1,inertia_rotor2,inertia_p1,inertia_p2,inertia_d1,inertia_d2,
                         com_offset_p1,com_offset_p2,com_offset_d1,com_offset_d2,
                         mass_rotor1,mass_rotor2,mass_p1,mass_p2,mass_d1,mass_d2,
-                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,damping_d1d2,
-                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,dryfrict_d1d2
+                        damping_bp1,damping_bp2,damping_p1d1,damping_p2d2,
+                        dryfrict_bp1,dryfrict_bp2,dryfrict_p1d1,dryfrict_p2d2,
                         )
 
 # Save to a file
