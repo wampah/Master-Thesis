@@ -6,18 +6,18 @@ import time
 import numpy as np
 
 # === Initialize robot ===
-robot = five_bar(SERIAL_PORT="COM16", max_speed=200)
-robot.set_control_mode("position",135,-135)
+robot = five_bar(SERIAL_PORT="COM3", max_speed=300)
+robot.set_control_mode("speed",0,0)
 
 robot.start()
 
-vals=[[135,-135],
-[117.91, -217.76],
-[226.68, -93.44],
-[157.75, -92.08],
-[117.11, -198.33],
-[130.25, -125.78],
-[199.07, -195.59]]
+# vals=[[135,-135],
+# [117.91, -217.76],
+# [226.68, -93.44],
+# [157.75, -92.08],
+# [117.11, -198.33],
+# [130.25, -125.78],
+# [199.07, -195.59]]
 
 # === Parameters ===
 max_len = 100  # Rolling window size (number of data points)
@@ -33,28 +33,33 @@ fig, ax = plt.subplots()
 line1, = ax.plot([], [], label='Motor 1')
 line2, = ax.plot([], [], label='Motor 2')
 
-ax.set_ylim(-360, 360)  # Adjust based on your robot's angle range
+ax.set_ylim(-1500, 1500)  # Adjust based on your robot's angle range
 ax.set_xlabel("Time (s)")
-ax.set_ylabel("Angle (deg)")
+ax.set_ylabel("Torque (Nm)")
 ax.legend()
-plt.title("Live Motor Angles")
+plt.title("Live Motor Torque")
 
 t_0=time.time()
-i=0
+i=1
 
+vals=[-1000,0,1000,0]
+
+target=[-1000,-1000]
+robot.set_target(*target)
 # === Update function for animation ===
 def update(frame):
-    global t_0, i
-    if time.time()-t_0>2:
+    global t_0, i , target
+    
+    if time.time()-t_0>4:
         t_0=time.time()
-        robot.set_target(vals[i][0],vals[i][1])
+        robot.set_target(vals[i],vals[i])
         i+=1
         if i==len(vals):
             i=0
-            
+
             
     current_time = time.time() - start_time
-    angles = robot.get_motors_data()["angle"]
+    angles = robot.get_motors_data()["speed"]
 
     timestamps.append(current_time)
     angle1.append(angles[0])
