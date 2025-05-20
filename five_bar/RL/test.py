@@ -52,12 +52,16 @@ if __name__ == "__main__":
         while episodes < 100:
             action, _ = model.predict(obs, deterministic=True)
             obs, reward, done, info = vec_env.step(action)
-
+            
             current_energy.append(info[0]["energy"])
             current_distance.append(info[0]["distance"])
 
-            angle1.append(info[0]["qpos"][0])
-            angle2.append(info[0]["qpos"][2])
+
+
+            data=vec_env.unwrapped.env_method("get_simulation_state")[0]
+            
+            angle1.append(data["qpos"][0])
+            angle2.append(data["qpos"][2])
             if done:
                 episodes += 1
                 energies.append(current_energy[:])

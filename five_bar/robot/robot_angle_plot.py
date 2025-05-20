@@ -1,4 +1,4 @@
-from five_bar.five_bar import five_bar
+from five_bar_robot.five_bar import five_bar
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from collections import deque

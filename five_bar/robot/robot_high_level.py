@@ -1,4 +1,4 @@
-from five_bar.five_bar import five_bar
+from five_bar_robot.five_bar import five_bar
 import time
 import numpy as np
 import pandas as pd

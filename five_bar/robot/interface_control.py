@@ -1,13 +1,13 @@
 import tkinter as tk
 import threading
 import time
-from five_bar.five_bar import five_bar
+from five_bar_robot.five_bar import five_bar
 
 # Initialize the robot
 robot = five_bar(SERIAL_PORT="COM3", max_speed=300)
 robot.set_control_mode("position",135,-135)  # Default mode
 
-robot.write_PID_write_command(50, 50, 255, 0, 150, 1)
+robot.write_PID_write_command(50, 50, 255, 1, 100, 1)
 
 robot.start()
 

@@ -52,15 +52,15 @@ if __name__ == "__main__":
     else:
         algo_name = sys.argv[1]
         
-        params={"enA":1,"diA":1,"enB":1,"diB":1}
+        params={"enA":9.40067556833036,"diA":6.37969326587632,"enB":6.945395605629253,"diB":7.679455273241135}
 
-        env = gym.make("five_bar-v0", render_mode="human", camera_name="free",
+        env = gym.make("five_bar-v0", render_mode=None, camera_name="free",
                        reward_dist_weight_A= params["diA"],
                        reward_dist_weight_B= params["diB"],
                        reward_control_weight_A = params["enA"],
                        reward_control_weight_B= params["enB"])
         
-        env_render = gym.make("five_bar-v0", render_mode="human", camera_name="free",
+        env_render = gym.make("five_bar-v0", render_mode=None, camera_name="free",
                        reward_dist_weight_A= params["diA"],
                        reward_dist_weight_B= params["diB"],
                        reward_control_weight_A = params["enA"],
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         print("-"*50,"Checking Env","-"*50)
         check_env(env)
         print("-"*50,"Done Checking Env","-"*50)
-        train(env,algo_name,params,200)
+        train(env,algo_name,params,5_000_000)
         
         model=model_load(env_render,algo_name,params)
         
