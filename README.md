@@ -6,7 +6,7 @@ Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Est
   <img src="docs/rob.jpeg" alt="Demo" width="75%"/>
 </p>
 <p align="center">
-  <img src="docs/render.png" alt="Demo" width="75%"/>
+  <img src="docs/render.jpeg" alt="Demo" width="75%"/>
 </p>
 <p align="center">
   <img src="docs/sect.png" alt="Demo" width="50%"/>
