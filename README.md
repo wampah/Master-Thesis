@@ -2,6 +2,15 @@
 
 ## Introducción
 Este es mi repositorio de tesis de maestría de la Universidad de Los Andes. Esta tesis estudia la implementación de algoritmos de aprendizaje por refuerzo profundo para la planeación de trayectorias de mínimo consumo energético en un robot paralelo.
+<p align="center">
+  <img src="docs/rob.jpeg" alt="Demo" width="75%"/>
+</p>
+<p align="center">
+  <img src="docs/render.png" alt="Demo" width="75%"/>
+</p>
+<p align="center">
+  <img src="docs/sect.png" alt="Demo" width="50%"/>
+</p>
 
 ## Prerequsitos
 - Python 3.12
